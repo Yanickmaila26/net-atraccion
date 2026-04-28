@@ -395,25 +395,26 @@ CREATE TABLE IF NOT EXISTS availability_slot (
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS tour_itinerary (
-    id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-    attraction_id UUID        NOT NULL REFERENCES attraction(id) ON DELETE CASCADE,
-    language_id   SMALLINT    NOT NULL REFERENCES language(id),
-    title         VARCHAR(150) NOT NULL,
-    description   TEXT,
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    id                UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    attraction_id     UUID        NOT NULL REFERENCES attraction(id) ON DELETE CASCADE,
+    language_id       SMALLINT    NOT NULL REFERENCES language(id),
+    title             VARCHAR(150) NOT NULL,
+    overview          TEXT,
+    total_distance_km NUMERIC(6,2),
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS tour_stop (
-    id             UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-    itinerary_id   UUID        NOT NULL REFERENCES tour_itinerary(id) ON DELETE CASCADE,
-    stop_number    SMALLINT    NOT NULL,
-    title          VARCHAR(150) NOT NULL,
-    description    TEXT,
-    latitude       NUMERIC(9,6),
-    longitude      NUMERIC(9,6),
-    duration_mins  SMALLINT,
-    admission_type VARCHAR(20) CHECK (admission_type IN ('included','optional','not_included','excluded','bring')),
+    id               UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    itinerary_id     UUID        NOT NULL REFERENCES tour_itinerary(id) ON DELETE CASCADE,
+    stop_number      SMALLINT    NOT NULL,
+    name             VARCHAR(150) NOT NULL,
+    description      TEXT,
+    latitude         NUMERIC(9,6),
+    longitude        NUMERIC(9,6),
+    duration_minutes SMALLINT,
+    admission_type   VARCHAR(20) CHECK (admission_type IN ('included','optional','not_included','excluded','bring')),
     UNIQUE (itinerary_id, stop_number)
 );
 
@@ -432,7 +433,7 @@ CREATE TABLE IF NOT EXISTS audio_guide (
     language_id        SMALLINT    NOT NULL REFERENCES language(id),
     title              VARCHAR(150) NOT NULL,
     description        TEXT,
-    total_duration_secs INTEGER,
+    total_duration_seconds INTEGER,
     is_active          BOOLEAN     NOT NULL DEFAULT TRUE,
     created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -446,7 +447,7 @@ CREATE TABLE IF NOT EXISTS audio_guide_stop (
     title         VARCHAR(150) NOT NULL,
     description   TEXT,
     audio_url     TEXT        NOT NULL,
-    duration_secs INTEGER,
+    duration_seconds INTEGER,
     latitude      NUMERIC(9,6),
     longitude     NUMERIC(9,6),
     image_url     TEXT,
