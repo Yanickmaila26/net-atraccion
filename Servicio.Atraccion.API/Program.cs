@@ -112,15 +112,20 @@ var app = builder.Build();
 // ======================================================
 // 5. CONFIGURACIÓN DEL PIPELINE HTTP
 // ======================================================
-if (app.Environment.IsDevelopment())
+// ======================================================
+// 5. CONFIGURACIÓN DEL PIPELINE HTTP
+// ======================================================
+
+// Esto hace que Swagger sea accesible siempre (o podrías añadir una condición más flexible)
+app.UseSwagger();
+app.UseSwaggerUI(c => 
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Servicio Atracción API v1"));
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Servicio Atracción API v1");
+    c.RoutePrefix = string.Empty; // <-- ESTO ES CLAVE: Hace que Swagger aparezca en la raíz
+});
 
 // Middleware Global de Excepciones
 app.UseMiddleware<Servicio.Atraccion.API.Middleware.ExceptionMiddleware>();
-
 // Habilitar el servicio de archivos estáticos para la carpeta wwwroot (uploads locales)
 app.UseStaticFiles();
 
