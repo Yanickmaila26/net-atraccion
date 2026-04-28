@@ -109,33 +109,75 @@ public class AtraccionDbContext : DbContext
     // MODEL CREATING
     // ══════════════════════════════════════════════════
     protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    base.OnModelCreating(modelBuilder);
+    modelBuilder.ApplyConfigurationsFromAssembly(typeof(AtraccionDbContext).Assembly);
+
+    // Mapeo manual para resolver la inconsistencia de nombres en tu BD
+    var tableMapping = new Dictionary<string, string>
     {
-        base.OnModelCreating(modelBuilder);
+        { nameof(User), "users" },
+        { nameof(UserRole), "user_role" },
+        { nameof(Role), "role" },
+        { nameof(Location), "locations" }, // Plural
+        { nameof(Category), "category" },
+        { nameof(CategoryTranslation), "category_translation" },
+        { nameof(Language), "language" },
+        { nameof(Subcategory), "subcategory" },
+        { nameof(SubcategoryTranslation), "subcategory_translation" },
+        { nameof(InclusionItem), "inclusion_item" },
+        { nameof(Client), "client" },
+        { nameof(Attraction), "attraction" },
+        { nameof(AttractionTranslation), "attraction_translation" },
+        { nameof(AttractionTag), "attraction_tag" },
+        { nameof(Tag), "tag" },
+        { nameof(AttractionInclusion), "attraction_inclusion" },
+        { nameof(AttractionLanguage), "attraction_language" },
+        { nameof(AttractionMedia), "attraction_media" },
+        { nameof(MediaType), "media_type" },
+        { nameof(ProductOption), "product_option" },
+        { nameof(ProductTranslation), "product_translation" },
+        { nameof(ProductInclusion), "product_inclusion" },
+        { nameof(PriceTier), "price_tier" },
+        { nameof(TicketCategory), "ticket_category" },
+        { nameof(ProductScheduleTemplate), "product_schedule_template" },
+        { nameof(ProductScheduleTime), "product_schedule_time" },
+        { nameof(AvailabilitySlot), "availability_slot" },
+        { nameof(TourItinerary), "tour_itinerary" },
+        { nameof(TourStop), "tour_stop" },
+        { nameof(TourStopMedia), "tour_stop_media" },
+        { nameof(AudioGuide), "audio_guide" },
+        { nameof(AudioGuideStop), "audio_guide_stop" },
+        { nameof(Booking), "booking" },
+        { nameof(BookingStatus), "booking_status" },
+        { nameof(BookingDetail), "booking_detail" },
+        { nameof(Payment), "payment" },
+        { nameof(PaymentMethodType), "payment_method_type" },
+        { nameof(PaymentStatusType), "payment_status_type" },
+        { nameof(Review), "review" },
+        { nameof(ReviewRating), "review_rating" },
+        { nameof(ReviewCriteria), "review_criteria" },
+        { nameof(ReviewMedia), "review_media" },
+        { nameof(AuditLog), "audit_log" }
+    };
 
-        // 1. Aplicar configuraciones explícitas de los archivos de configuración
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AtraccionDbContext).Assembly);
-
-        // 2. Convención Global para PostgreSQL (snake_case + minúsculas obligatorias)
-        foreach (var entity in modelBuilder.Model.GetEntityTypes())
+    foreach (var entity in modelBuilder.Model.GetEntityTypes())
+    {
+        var entityName = entity.ClrType.Name;
+        if (tableMapping.TryGetValue(entityName, out var tableName))
         {
-            // Forzamos el nombre de la tabla a snake_case en minúsculas
-            var tableName = ToSnakeCase(entity.ClrType.Name);
             entity.SetTableName(tableName);
+        }
 
-            foreach (var property in entity.GetProperties())
-            {
-                // Forzamos el nombre de cada columna a snake_case en minúsculas
-                property.SetColumnName(ToSnakeCase(property.Name));
-
-                // Ajuste de valores por defecto para Postgres
-                var defaultValueSql = property.GetDefaultValueSql();
-                if (defaultValueSql != null && defaultValueSql.Contains("GETUTCDATE()", StringComparison.OrdinalIgnoreCase))
-                {
-                    property.SetDefaultValueSql("now()");
-                }
-            }
+        // Mantenemos snake_case para las columnas porque esas sí parecen consistentes
+        foreach (var property in entity.GetProperties())
+        {
+            var propName = ToSnakeCase(property.Name);
+            property.SetColumnName(propName);
         }
     }
+}
+
 
     private string ToSnakeCase(string input)
 {
