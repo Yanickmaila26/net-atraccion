@@ -138,18 +138,14 @@ public class AtraccionDbContext : DbContext
     }
 
     private string ToSnakeCase(string input)
-    {
-        if (string.IsNullOrEmpty(input)) return input;
+{
+    if (string.IsNullOrEmpty(input)) return input;
 
-        // Convierte PascalCase a snake_case y todo a minúsculas
-        var res = System.Text.RegularExpressions.Regex.Replace(input, @"([a-z0-9])([A-Z])", "$1_$2").ToLower();
-        
-        // Manejo especial para pluralización común (opcional, pero ayuda)
-        if (res.EndsWith("y")) res = res.Substring(0, res.Length - 1) + "ies";
-        else if (!res.EndsWith("s")) res += "s";
+    // Solo convierte PascalCase a snake_case y a minúsculas
+    // SIN añadir "s" al final, para respetar el nombre de tu clase
+    return System.Text.RegularExpressions.Regex.Replace(input, @"([a-z0-9])([A-Z])", "$1_$2").ToLower();
+}
 
-        return res;
-    }
 
 
     // ══════════════════════════════════════════════════
