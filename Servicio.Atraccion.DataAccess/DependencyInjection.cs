@@ -22,7 +22,7 @@ public static class DependencyInjection
         services.AddDbContext<AtraccionDbContext>((serviceProvider, options) =>
         {
             var factory = serviceProvider.GetRequiredService<IDbConnectionFactory>();
-    var connectionString = "Host=db.xjadseakmpettnpyyxdm.supabase.co;Database=postgres;Username=postgres;Password=TuPasswordReal;Port=5432;SSL Mode=Require;";
+    var connectionString = "Host=db.xjadseakmpettnpyyxdm.supabase.co;Database=postgres;Username=postgres;Password=bBWJUwqbjdEcEesU;Port=5432;SSL Mode=Require;";
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
