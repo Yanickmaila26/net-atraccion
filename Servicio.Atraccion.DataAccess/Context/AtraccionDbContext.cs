@@ -118,14 +118,12 @@ public class AtraccionDbContext : DbContext
         // 2. Convención Global para PostgreSQL (snake_case)
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
-            // Nombre de la tabla
             var tableName = entity.GetTableName();
             if (!string.IsNullOrEmpty(tableName))
             {
                 entity.SetTableName(ToSnakeCase(tableName));
             }
 
-            // Nombre de las columnas y Default Values
             foreach (var property in entity.GetProperties())
             {
                 property.SetColumnName(ToSnakeCase(property.Name));
@@ -135,27 +133,6 @@ public class AtraccionDbContext : DbContext
                 {
                     property.SetDefaultValueSql("now()");
                 }
-            }
-
-            // Claves primarias
-            foreach (var key in entity.GetKeys())
-            {
-                var keyName = key.GetName();
-                if (!string.IsNullOrEmpty(keyName)) key.SetName(ToSnakeCase(keyName));
-            }
-
-            // Claves foráneas
-            foreach (var fk in entity.GetForeignKeys())
-            {
-                var constraintName = fk.GetConstraintName();
-                if (!string.IsNullOrEmpty(constraintName)) fk.SetConstraintName(ToSnakeCase(constraintName));
-            }
-
-            // Índices
-            foreach (var index in entity.GetIndexes())
-            {
-                var indexName = index.GetDatabaseName();
-                if (!string.IsNullOrEmpty(indexName)) index.SetDatabaseName(ToSnakeCase(indexName));
             }
         }
     }
