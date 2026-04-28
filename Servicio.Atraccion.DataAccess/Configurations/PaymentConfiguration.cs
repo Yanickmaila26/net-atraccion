@@ -35,7 +35,7 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
     public void Configure(EntityTypeBuilder<Review> builder)
     {
         builder.ToTable("Review", t => t.HasCheckConstraint("CK_Review_Score",
-            "[OverallScore] BETWEEN 1.00 AND 5.00"));
+            "overall_score BETWEEN 1.00 AND 5.00"));
         builder.HasKey(r => r.Id);
         builder.HasIndex(r => r.BookingId).IsUnique();
 

@@ -147,7 +147,7 @@ public class AttractionInclusionConfiguration : IEntityTypeConfiguration<Attract
 {
     public void Configure(EntityTypeBuilder<AttractionInclusion> builder)
     {
-        builder.ToTable("AttractionInclusion", t => t.HasCheckConstraint("CK_AttrIncl_Type", "[Type] IN ('included','not_included','optional','bring')"));
+        builder.ToTable("AttractionInclusion", t => t.HasCheckConstraint("CK_AttrIncl_Type", "type IN ('included','not_included','optional','bring')"));
         builder.HasKey(ai => new { ai.AttractionId, ai.InclusionItemId });
         builder.Property(ai => ai.Type).HasMaxLength(20).IsRequired();
     }
@@ -157,7 +157,7 @@ public class ProductInclusionConfiguration : IEntityTypeConfiguration<ProductInc
 {
     public void Configure(EntityTypeBuilder<ProductInclusion> builder)
     {
-        builder.ToTable("ProductInclusion", t => t.HasCheckConstraint("CK_ProdIncl_Type", "[Type] IN ('included','not_included','optional','bring')"));
+        builder.ToTable("ProductInclusion", t => t.HasCheckConstraint("CK_ProdIncl_Type", "type IN ('included','not_included','optional','bring')"));
         builder.HasKey(pi => new { pi.ProductId, pi.InclusionItemId });
         builder.Property(pi => pi.Type).HasMaxLength(20).IsRequired();
     }
@@ -182,7 +182,7 @@ public class AttractionLanguageConfiguration : IEntityTypeConfiguration<Attracti
     public void Configure(EntityTypeBuilder<AttractionLanguage> builder)
     {
         builder.ToTable("AttractionLanguage", t => t.HasCheckConstraint("CK_AttrLang_GuideType",
-            "[GuideType] IN ('live','audio','written','app')"));
+            "guide_type IN ('live','audio','written','app')"));
         builder.HasKey(al => al.Id);
         builder.HasIndex(al => new { al.AttractionId, al.LanguageId, al.GuideType }).IsUnique();
         builder.Property(al => al.GuideType).HasMaxLength(20).IsRequired();
@@ -194,7 +194,7 @@ public class AvailabilitySlotConfiguration : IEntityTypeConfiguration<Availabili
     public void Configure(EntityTypeBuilder<AvailabilitySlot> builder)
     {
         builder.ToTable("AvailabilitySlot", t => t.HasCheckConstraint("CK_AvailSlot_Capacity",
-            "[CapacityAvailable] <= [CapacityTotal] AND [CapacityTotal] > 0 AND [CapacityAvailable] >= 0"));
+            "capacity_available <= capacity_total AND capacity_total > 0 AND capacity_available >= 0"));
         builder.HasKey(s => s.Id);
         builder.HasIndex(s => new { s.ProductId, s.SlotDate, s.StartTime }).IsUnique();
 
@@ -208,7 +208,7 @@ public class PriceTierConfiguration : IEntityTypeConfiguration<PriceTier>
 {
     public void Configure(EntityTypeBuilder<PriceTier> builder)
     {
-        builder.ToTable("PriceTier", t => t.HasCheckConstraint("CK_PriceTier_Price", "[Price] >= 0"));
+        builder.ToTable("PriceTier", t => t.HasCheckConstraint("CK_PriceTier_Price", "price >= 0"));
         builder.HasKey(pt => pt.Id);
         builder.Property(pt => pt.Price).HasPrecision(12, 2);
         builder.Property(pt => pt.CurrencyCode).HasMaxLength(3).HasDefaultValue("USD");
@@ -275,7 +275,7 @@ public class TourStopConfiguration : IEntityTypeConfiguration<TourStop>
     public void Configure(EntityTypeBuilder<TourStop> builder)
     {
         builder.ToTable("TourStop", t => t.HasCheckConstraint("CK_TourStop_Admission",
-            "[AdmissionType] IS NULL OR [AdmissionType] IN ('included','optional','excluded','bring')"));
+            "admission_type IS NULL OR admission_type IN ('included','optional','excluded','bring')"));
         builder.HasKey(s => s.Id);
         builder.HasIndex(s => new { s.ItineraryId, s.StopNumber }).IsUnique();
         builder.Property(s => s.Name).HasMaxLength(150).IsRequired();
@@ -323,7 +323,7 @@ public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
     public void Configure(EntityTypeBuilder<AuditLog> builder)
     {
         builder.ToTable("AuditLog", t => t.HasCheckConstraint("CK_AuditLog_Action",
-            "[Action] IN ('INSERT','UPDATE','DELETE')"));
+            "action IN ('INSERT','UPDATE','DELETE')"));
         builder.HasKey(a => a.Id);
         builder.Property(a => a.TableName).HasMaxLength(100).IsRequired();
         builder.Property(a => a.Action).HasMaxLength(10).IsRequired();

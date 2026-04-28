@@ -9,7 +9,7 @@ public class AttractionConfiguration : IEntityTypeConfiguration<Attraction>
     public void Configure(EntityTypeBuilder<Attraction> builder)
     {
         builder.ToTable("Attraction", t => t.HasCheckConstraint("CK_Attraction_Difficulty",
-            "[DifficultyLevel] IN ('easy','moderate','hard')"));
+            "difficulty_level IN ('easy','moderate','hard')"));
 
         builder.HasKey(a => a.Id);
         builder.HasIndex(a => a.Slug).IsUnique();

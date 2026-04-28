@@ -6,6 +6,6 @@ public class PriceTierConfiguration : IEntityTypeConfiguration<PriceTier>
 {
     public void Configure(EntityTypeBuilder<PriceTier> builder)
     {
-        builder.Property(e => e.Price).HasPrecision(12, 2);
+        builder.ToTable("PriceTier", t => t.HasCheckConstraint("CK_PriceTier_Price", "price >= 0"));
     }
 }

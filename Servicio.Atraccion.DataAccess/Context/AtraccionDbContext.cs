@@ -112,14 +112,61 @@ public class AtraccionDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Convención global: Usar el nombre de la clase (singular) como nombre de la tabla
+        // 1. Aplicar configuraciones explícitas de los archivos de configuración
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AtraccionDbContext).Assembly);
+
+        // 2. Convención Global para PostgreSQL (snake_case)
+        // Esto sobrescribe los nombres PascalCase definidos en ToTable() y nombres de columnas
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
-            entity.SetTableName(entity.ClrType.Name);
-        }
+            // Nombre de la tabla a snake_case
+            var tableName = entity.GetTableName();
+            if (tableName != null)
+            {
+                entity.SetTableName(ToSnakeCase(tableName));
+            }
 
-        // Aplica todas las configuraciones explícitas Fluent API (sobreescribe la convención anterior)
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AtraccionDbContext).Assembly);
+            // Nombre de las columnas a snake_case
+            foreach (var property in entity.GetProperties())
+            {
+                property.SetColumnName(ToSnakeCase(property.Name));
+
+                // Corregir default value de SQL Server a PostgreSQL
+                var defaultValueSql = property.GetDefaultValueSql();
+                if (defaultValueSql != null && defaultValueSql.Contains("GETUTCDATE()", StringComparison.OrdinalIgnoreCase))
+                {
+                    property.SetDefaultValueSql("now()");
+                }
+            }
+
+            // Corregir claves primarias
+            foreach (var key in entity.GetKeys())
+            {
+                key.SetName(ToSnakeCase(key.GetName()!));
+            }
+
+            // Corregir claves foráneas
+            foreach (var fk in entity.GetForeignKeys())
+            {
+                fk.SetConstraintName(ToSnakeCase(fk.GetConstraintName()!));
+            }
+
+            // Corregir índices
+            foreach (var index in entity.GetIndexes())
+            {
+                index.SetDatabaseName(ToSnakeCase(index.GetDatabaseName()!));
+            }
+        }
+    }
+
+    private string ToSnakeCase(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+
+        var startUnderscore = input.StartsWith("_");
+        var res = System.Text.RegularExpressions.Regex.Replace(input, @"([a-z0-9])([A-Z])", "$1_$2").ToLower();
+        
+        return startUnderscore ? "_" + res : res;
     }
 
     // ══════════════════════════════════════════════════
