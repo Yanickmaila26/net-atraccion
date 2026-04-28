@@ -105,7 +105,7 @@ public class AtraccionDbContext : DbContext
     // ══════════════════════════════════════════════════
     public DbSet<AuditLog> AuditLogs { get; set; }
 
-    // ══════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════
     // MODEL CREATING
     // ══════════════════════════════════════════════════
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -115,19 +115,19 @@ public class AtraccionDbContext : DbContext
         // 1. Aplicar configuraciones explícitas de los archivos de configuración
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AtraccionDbContext).Assembly);
 
-        // 2. Convención Global para PostgreSQL (snake_case)
+        // 2. Convención Global para PostgreSQL (snake_case + minúsculas obligatorias)
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
-            var tableName = entity.GetTableName();
-            if (!string.IsNullOrEmpty(tableName))
-            {
-                entity.SetTableName(ToSnakeCase(tableName));
-            }
+            // Forzamos el nombre de la tabla a snake_case en minúsculas
+            var tableName = ToSnakeCase(entity.ClrType.Name);
+            entity.SetTableName(tableName);
 
             foreach (var property in entity.GetProperties())
             {
+                // Forzamos el nombre de cada columna a snake_case en minúsculas
                 property.SetColumnName(ToSnakeCase(property.Name));
 
+                // Ajuste de valores por defecto para Postgres
                 var defaultValueSql = property.GetDefaultValueSql();
                 if (defaultValueSql != null && defaultValueSql.Contains("GETUTCDATE()", StringComparison.OrdinalIgnoreCase))
                 {
@@ -141,11 +141,16 @@ public class AtraccionDbContext : DbContext
     {
         if (string.IsNullOrEmpty(input)) return input;
 
-        var startUnderscore = input.StartsWith("_");
+        // Convierte PascalCase a snake_case y todo a minúsculas
         var res = System.Text.RegularExpressions.Regex.Replace(input, @"([a-z0-9])([A-Z])", "$1_$2").ToLower();
         
-        return startUnderscore ? "_" + res : res;
+        // Manejo especial para pluralización común (opcional, pero ayuda)
+        if (res.EndsWith("y")) res = res.Substring(0, res.Length - 1) + "ies";
+        else if (!res.EndsWith("s")) res += "s";
+
+        return res;
     }
+
 
     // ══════════════════════════════════════════════════
     // SAVE WITH AUDIT
