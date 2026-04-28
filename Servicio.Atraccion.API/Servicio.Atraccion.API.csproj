@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <!-- Asegúrese de usar un TFM válido. Si desea .NET 10 use "net10.0", o use "net8.0"/"net7.0" según su SDK -->
+    <TargetFramework>net10.0</TargetFramework>
+
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Asp.Versioning.Mvc" Version="8.1.1" />
+    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Servicio.Atraccion.Business\Servicio.Atraccion.Business.csproj" />
+    <ProjectReference Include="..\Servicio.Atraccion.DataAccess\Servicio.Atraccion.DataAccess.csproj" />
+    <ProjectReference Include="..\Servicio.Atraccion.DataManagement\Servicio.Atraccion.DataManagement.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Middleware\" />
+    <Folder Include="Extensions\" />
+    <Folder Include="Models\Common\" />
+    <Folder Include="Models\Settings\" />
+  </ItemGroup>
+
+</Project>

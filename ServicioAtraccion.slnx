@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="Servicio.Atraccion.API/Servicio.Atraccion.API.csproj" />
+    <Project Path="Servicio.Atraccion.Business/Servicio.Atraccion.Business.csproj" />
+    <Project Path="Servicio.Atraccion.DataAccess/Servicio.Atraccion.DataAccess.csproj" />
+    <Project Path="Servicio.Atraccion.DataManagement/Servicio.Atraccion.DataManagement.csproj" />
+  </Folder>
+  <Folder Name="/test/" />
+</Solution>
