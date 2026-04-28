@@ -116,22 +116,20 @@ public class AtraccionDbContext : DbContext
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AtraccionDbContext).Assembly);
 
         // 2. Convención Global para PostgreSQL (snake_case)
-        // Esto sobrescribe los nombres PascalCase definidos en ToTable() y nombres de columnas
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
-            // Nombre de la tabla a snake_case
+            // Nombre de la tabla
             var tableName = entity.GetTableName();
-            if (tableName != null)
+            if (!string.IsNullOrEmpty(tableName))
             {
                 entity.SetTableName(ToSnakeCase(tableName));
             }
 
-            // Nombre de las columnas a snake_case
+            // Nombre de las columnas y Default Values
             foreach (var property in entity.GetProperties())
             {
                 property.SetColumnName(ToSnakeCase(property.Name));
 
-                // Corregir default value de SQL Server a PostgreSQL
                 var defaultValueSql = property.GetDefaultValueSql();
                 if (defaultValueSql != null && defaultValueSql.Contains("GETUTCDATE()", StringComparison.OrdinalIgnoreCase))
                 {
@@ -139,22 +137,25 @@ public class AtraccionDbContext : DbContext
                 }
             }
 
-            // Corregir claves primarias
+            // Claves primarias
             foreach (var key in entity.GetKeys())
             {
-                key.SetName(ToSnakeCase(key.GetName()!));
+                var keyName = key.GetName();
+                if (!string.IsNullOrEmpty(keyName)) key.SetName(ToSnakeCase(keyName));
             }
 
-            // Corregir claves foráneas
+            // Claves foráneas
             foreach (var fk in entity.GetForeignKeys())
             {
-                fk.SetConstraintName(ToSnakeCase(fk.GetConstraintName()!));
+                var constraintName = fk.GetConstraintName();
+                if (!string.IsNullOrEmpty(constraintName)) fk.SetConstraintName(ToSnakeCase(constraintName));
             }
 
-            // Corregir índices
+            // Índices
             foreach (var index in entity.GetIndexes())
             {
-                index.SetDatabaseName(ToSnakeCase(index.GetDatabaseName()!));
+                var indexName = index.GetDatabaseName();
+                if (!string.IsNullOrEmpty(indexName)) index.SetDatabaseName(ToSnakeCase(indexName));
             }
         }
     }
