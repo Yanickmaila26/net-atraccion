@@ -22,7 +22,10 @@ builder.Services.AddBusinessServices();
 // ======================================================
 // 2. CONFIGURACIÓN API & CORS
 // ======================================================
-builder.Services.AddControllers()
+builder.Services.AddControllers(options => 
+{
+    options.Filters.Add<Servicio.Atraccion.API.Filters.ApiResponseWrapperFilter>();
+})
     .AddJsonOptions(options =>
     {
         // Esto asegura que la API entienda "13:00" como un TimeOnly correctamente

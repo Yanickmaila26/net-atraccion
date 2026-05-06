@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<IStorageService, LocalStorageService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IBookingIntegrationService, BookingIntegrationService>();
 
         // ─── Validadores FluentValidation ──────────────────────────────────────
         services.AddScoped<IValidator<CreateBookingRequest>, CreateBookingValidator>();
