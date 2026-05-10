@@ -155,3 +155,55 @@ public class AtraccionSearchBookingRequest
     public decimal? PrecioMinimo { get; set; }
     public decimal? PrecioMaximo { get; set; }
 }
+
+// ══════════════════════════════════════════════════════════════
+// DTOs PARA TRANSACCIONES (RESERVAS)
+// ══════════════════════════════════════════════════════════════
+
+/// <summary>
+/// Solicitud para crear una nueva reserva desde el Marketplace.
+/// </summary>
+public class AtraccionBookingRequestDto
+{
+    /// <summary>ID del slot de disponibilidad elegido.</summary>
+    public Guid SlotId { get; set; }
+
+    /// <summary>Lista de pasajeros y sus categorías de ticket.</summary>
+    public List<TicketBookingDetailDto> Tickets { get; set; } = [];
+
+    public string? Notas { get; set; }
+}
+
+public class TicketBookingDetailDto
+{
+    /// <summary>ID de la categoría de ticket (Adulto, Niño, etc.)</summary>
+    public Guid TicketCategoryId { get; set; }
+    
+    /// <summary>ID del PriceTier específico para asegurar el precio congelado (opcional)</summary>
+    public Guid? PriceTierId { get; set; }
+
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string DocumentNumber { get; set; } = string.Empty;
+    public string? DocumentType { get; set; }
+}
+
+/// <summary>
+/// Respuesta tras procesar una reserva.
+/// </summary>
+public class AtraccionBookingResponseDto
+{
+    public Guid BookingId { get; set; }
+    
+    /// <summary>Código localizador (PNR).</summary>
+    public string PnrCode { get; set; } = string.Empty;
+    
+    public string Status { get; set; } = string.Empty;
+    public decimal TotalAmount { get; set; }
+    public string Currency { get; set; } = "USD";
+    
+    /// <summary>Fecha y hora de la actividad.</summary>
+    public DateTime ActivityDate { get; set; }
+    
+    public string AttractionName { get; set; } = string.Empty;
+}

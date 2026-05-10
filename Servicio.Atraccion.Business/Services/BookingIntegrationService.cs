@@ -133,6 +133,169 @@ public class BookingIntegrationService : IBookingIntegrationService
     }
 
     // ══════════════════════════════════════════════════
+    // TRANSACCIONES: CREAR RESERVA
+    // ══════════════════════════════════════════════════
+
+    public async Task<ApiResponse<AtraccionBookingResponseDto>> CrearReservaAsync(AtraccionBookingRequestDto request, Guid userId)
+    {
+        // 1. Obtener el slot y validar capacidad
+        var slot = await _uow.AvailabilitySlots.Query()
+            .Include(s => s.ProductOption)
+                .ThenInclude(po => po.Attraction)
+            .FirstOrDefaultAsync(s => s.Id == request.SlotId && s.IsActive);
+
+        if (slot == null)
+            return ApiResponse<AtraccionBookingResponseDto>.Fail("El horario seleccionado ya no está disponible.");
+
+        int totalTickets = request.Tickets.Count;
+        if (slot.CapacityAvailable < totalTickets)
+            return ApiResponse<AtraccionBookingResponseDto>.Fail($"No hay cupos suficientes. Cupos restantes: {slot.CapacityAvailable}");
+
+        // 2. Calcular montos (en un caso real, validaríamos los precios contra la DB)
+        decimal totalAmount = 0;
+        var details = new List<DataAccess.Entities.BookingDetail>();
+
+        foreach (var t in request.Tickets)
+        {
+            // Buscamos el precio para esta categoría en este producto
+            var priceTier = await _uow.PriceTiers.Query()
+                .FirstOrDefaultAsync(pt => pt.ProductId == slot.ProductId && pt.TicketCategoryId == t.TicketCategoryId && pt.IsActive);
+
+            if (priceTier == null)
+                return ApiResponse<AtraccionBookingResponseDto>.Fail("Una de las categorías de ticket seleccionadas no es válida para esta opción.");
+
+            totalAmount += priceTier.Price;
+
+            details.Add(new DataAccess.Entities.BookingDetail
+            {
+                Id = Guid.NewGuid(),
+                PriceTierId = priceTier.Id,
+                FirstName = t.FirstName,
+                LastName = t.LastName,
+                DocumentNumber = t.DocumentNumber,
+                DocumentType = t.DocumentType,
+                Quantity = 1, // Por simplicidad, cada ticket es una fila de detalle
+                UnitPrice = priceTier.Price
+            });
+        }
+
+        // 3. Crear la cabecera de la reserva
+        var booking = new DataAccess.Entities.Booking
+        {
+            Id = Guid.NewGuid(),
+            PnrCode = GeneratePnrCode(),
+            UserId = userId,
+            SlotId = slot.Id,
+            StatusId = 2, // Confirmed (asumimos pago o reserva inmediata para este flujo)
+            TotalAmount = totalAmount,
+            CurrencyCode = slot.ProductOption.PriceTiers.FirstOrDefault()?.CurrencyCode ?? "USD",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        // 4. Ejecutar cambios en la DB (Transacción lógica en UoW)
+        try 
+        {
+            await _uow.Bookings.AddAsync(booking);
+            
+            foreach (var detail in details)
+            {
+                detail.BookingId = booking.Id;
+                await _uow.BookingDetails.AddAsync(detail);
+            }
+
+            // RESTAR CUPO
+            slot.CapacityAvailable -= totalTickets;
+            slot.UpdatedAt = DateTime.UtcNow;
+
+            await _uow.CompleteAsync();
+
+            return ApiResponse<AtraccionBookingResponseDto>.Ok(new AtraccionBookingResponseDto
+            {
+                BookingId = booking.Id,
+                PnrCode = booking.PnrCode,
+                Status = "Confirmed",
+                TotalAmount = totalAmount,
+                Currency = booking.CurrencyCode,
+                ActivityDate = slot.SlotDate.ToDateTime(slot.StartTime),
+                AttractionName = slot.ProductOption.Attraction.Name
+            }, "Reserva creada exitosamente.");
+        }
+        catch (Exception ex)
+        {
+            return ApiResponse<AtraccionBookingResponseDto>.Fail("Error interno al procesar la reserva: " + ex.Message);
+        }
+    }
+
+    // ══════════════════════════════════════════════════
+    // TRANSACCIONES: CANCELAR RESERVA
+    // ══════════════════════════════════════════════════
+
+    public async Task<ApiResponse<bool>> CancelarReservaAsync(Guid bookingId, Guid userId)
+    {
+        var booking = await _uow.Bookings.Query()
+            .Include(b => b.Slot)
+            .FirstOrDefaultAsync(b => b.Id == bookingId && b.UserId == userId);
+
+        if (booking == null)
+            return ApiResponse<bool>.Fail("Reserva no encontrada.");
+
+        if (booking.StatusId == 3) // Cancelled
+            return ApiResponse<bool>.Fail("La reserva ya se encuentra cancelada.");
+
+        // 1. Cambiar estado
+        booking.StatusId = 3; // Cancelled
+        booking.CancelledAt = DateTime.UtcNow;
+        booking.UpdatedAt = DateTime.UtcNow;
+
+        // 2. Devolver cupos
+        var totalTickets = await _uow.BookingDetails.Query()
+            .Where(d => d.BookingId == bookingId)
+            .SumAsync(d => d.Quantity);
+
+        booking.Slot.CapacityAvailable += totalTickets;
+        booking.Slot.UpdatedAt = DateTime.UtcNow;
+
+        await _uow.CompleteAsync();
+
+        return ApiResponse<bool>.Ok(true, "Reserva cancelada y cupos liberados.");
+    }
+
+    // ══════════════════════════════════════════════════
+    // LISTAR MIS RESERVAS
+    // ══════════════════════════════════════════════════
+
+    public async Task<ApiResponse<List<AtraccionBookingResponseDto>>> ListarMisReservasAsync(Guid userId)
+    {
+        var bookings = await _uow.Bookings.Query()
+            .Include(b => b.Slot)
+                .ThenInclude(s => s.ProductOption)
+                    .ThenInclude(po => po.Attraction)
+            .Where(b => b.UserId == userId)
+            .OrderByDescending(b => b.CreatedAt)
+            .ToListAsync();
+
+        var dtos = bookings.Select(b => new AtraccionBookingResponseDto
+        {
+            BookingId = b.Id,
+            PnrCode = b.PnrCode,
+            Status = b.StatusId switch { 1 => "Pending", 2 => "Confirmed", 3 => "Cancelled", _ => "Unknown" },
+            TotalAmount = b.TotalAmount,
+            Currency = b.CurrencyCode,
+            ActivityDate = b.Slot.SlotDate.ToDateTime(b.Slot.StartTime),
+            AttractionName = b.Slot.ProductOption.Attraction.Name
+        }).ToList();
+
+        return ApiResponse<List<AtraccionBookingResponseDto>>.Ok(dtos);
+    }
+
+    private string GeneratePnrCode()
+    {
+        return Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper();
+    }
+
+
+    // ══════════════════════════════════════════════════
     // MAPPER CENTRAL PRIVADO
     // ══════════════════════════════════════════════════
 

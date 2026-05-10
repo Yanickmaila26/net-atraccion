@@ -26,4 +26,21 @@ public interface IBookingIntegrationService
     /// Si no se especifica fecha, devuelve los próximos 30 días.
     /// </summary>
     Task<ApiResponse<List<DisponibilidadDiariaDto>>> ObtenerDisponibilidadAsync(Guid attractionId, DateOnly? fecha = null);
+
+    // ── Transacciones ─────────────────────────────────────
+
+    /// <summary>
+    /// Crea una nueva reserva bloqueando cupos en el inventario.
+    /// </summary>
+    Task<ApiResponse<AtraccionBookingResponseDto>> CrearReservaAsync(AtraccionBookingRequestDto request, Guid userId);
+
+    /// <summary>
+    /// Cancela una reserva existente y libera los cupos.
+    /// </summary>
+    Task<ApiResponse<bool>> CancelarReservaAsync(Guid bookingId, Guid userId);
+
+    /// <summary>
+    /// Lista las reservas realizadas por un usuario.
+    /// </summary>
+    Task<ApiResponse<List<AtraccionBookingResponseDto>>> ListarMisReservasAsync(Guid userId);
 }
