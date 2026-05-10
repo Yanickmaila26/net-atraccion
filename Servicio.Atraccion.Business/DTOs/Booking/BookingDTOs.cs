@@ -80,6 +80,7 @@ public class BookingSummaryResponse
     public int TotalPassengers { get; set; }
     public short StatusId { get; set; }
     public bool CanReview { get; set; }
+    public int CancelPolicyHours { get; set; }
     public List<BookingTicketSummary> Tickets { get; set; } = [];
 }
 
@@ -105,6 +106,7 @@ public class BookingDetailResponse
     public DateOnly SlotDate { get; set; }
     public TimeOnly SlotStartTime { get; set; }
     public bool CanReview { get; set; }
+    public int CancelPolicyHours { get; set; }
 
     public List<PassengerDetailResponse> Passengers { get; set; } = [];
 }

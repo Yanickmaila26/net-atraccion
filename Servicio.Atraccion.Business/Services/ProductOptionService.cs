@@ -127,7 +127,12 @@ public class ProductOptionService : IProductOptionService
             .AnyAsync(b => b.AvailabilitySlot.ProductId == productId && b.StatusId != 4);
 
         if (hasBookings)
-            throw new BusinessException("No se puede eliminar esta modalidad porque tiene reservas activas.");
+        {
+            // Soft delete
+            product.IsActive = false;
+            await _uow.CompleteAsync();
+            return true;
+        }
 
         _db.ProductOptions.Remove(product);
         await _uow.CompleteAsync();

@@ -1,0 +1,391 @@
+openapi: 3.0.3
+info:
+  title: Servicio de Alquiler de Vehículos API
+  description: |
+    API REST para integración con el sistema central de Booking.
+    Este servicio gestiona el catálogo de vehículos, disponibilidad,
+    reservas, alquileres, devoluciones y operaciones relacionadas.
+
+    Diseñado bajo estándares empresariales:
+    - Idempotencia
+    - Trazabilidad distribuida (correlation_id)
+    - Consistencia eventual
+    - Validaciones de negocio estrictas
+  version: 2.0.0
+
+servers:
+  - url: https://api.vehiculos.com/api/v1
+    description: Production Server
+
+tags:
+  - name: Vehiculos
+  - name: Disponibilidad
+  - name: Reservas
+  - name: Alquileres
+  - name: Devoluciones
+
+paths:
+
+  /vehiculos:
+    get:
+      tags: [Vehiculos]
+      summary: Listar vehículos disponibles
+      operationId: GetVehiculos
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: ciudad
+          in: query
+          schema:
+            type: string
+        - name: categoria
+          in: query
+          schema:
+            type: string
+        - name: fechaInicio
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: fechaFin
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Lista de vehículos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseListVehiculos'
+
+  /vehiculos/{id}:
+    get:
+      tags: [Vehiculos]
+      summary: Obtener vehículo por ID
+      operationId: GetVehiculoById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Vehículo encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseVehiculo'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /vehiculos/{id}/disponibilidad:
+    get:
+      tags: [Disponibilidad]
+      summary: Consultar disponibilidad del vehículo
+      operationId: GetDisponibilidadVehiculo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: fechaInicio
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: fechaFin
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Disponibilidad consultada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDisponibilidad'
+
+  /reservas:
+    post:
+      tags: [Reservas]
+      summary: Crear reserva de vehículo
+      operationId: CreateReservaVehiculo
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReservaRequest'
+      responses:
+        '201':
+          description: Reserva creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseReserva'
+        '409':
+          description: Conflicto de disponibilidad
+
+  /reservas/{id}:
+    get:
+      tags: [Reservas]
+      summary: Obtener reserva
+      operationId: GetReservaById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseReserva'
+
+  /reservas/{id}/cancelar:
+    post:
+      tags: [Reservas]
+      summary: Cancelar reserva
+      operationId: CancelReserva
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Reserva cancelada
+
+  /alquileres:
+    post:
+      tags: [Alquileres]
+      summary: Iniciar alquiler
+      operationId: StartAlquiler
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAlquilerRequest'
+      responses:
+        '201':
+          description: Alquiler iniciado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseAlquiler'
+
+  /alquileres/{id}:
+    get:
+      tags: [Alquileres]
+      summary: Obtener alquiler
+      operationId: GetAlquiler
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseAlquiler'
+
+  /devoluciones:
+    post:
+      tags: [Devoluciones]
+      summary: Registrar devolución de vehículo
+      operationId: RegistrarDevolucion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDevolucionRequest'
+      responses:
+        '201':
+          description: Devolución registrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDevolucion'
+
+components:
+
+  schemas:
+
+    VehiculoDto:
+      type: object
+      properties:
+        id:
+          type: string
+        marca:
+          type: string
+        modelo:
+          type: string
+        categoria:
+          type: string
+        precioDia:
+          type: number
+        ciudad:
+          type: string
+        disponible:
+          type: boolean
+
+    ReservaDto:
+      type: object
+      properties:
+        id:
+          type: string
+        vehiculoId:
+          type: string
+        fechaInicio:
+          type: string
+          format: date
+        fechaFin:
+          type: string
+          format: date
+        total:
+          type: number
+        estado:
+          type: string
+          enum: [PENDIENTE, CONFIRMADA, CANCELADA, FINALIZADA]
+
+    AlquilerDto:
+      type: object
+      properties:
+        id:
+          type: string
+        reservaId:
+          type: string
+        estado:
+          type: string
+          enum: [ACTIVO, FINALIZADO, ANULADO]
+
+    DevolucionDto:
+      type: object
+      properties:
+        id:
+          type: string
+        alquilerId:
+          type: string
+        kmEntrada:
+          type: integer
+        cargoExtra:
+          type: number
+
+    DisponibilidadDto:
+      type: object
+      properties:
+        disponible:
+          type: boolean
+
+    CreateReservaRequest:
+      type: object
+      required: [vehiculoId, fechaInicio, fechaFin]
+      properties:
+        vehiculoId:
+          type: string
+        fechaInicio:
+          type: string
+        fechaFin:
+          type: string
+
+    CreateAlquilerRequest:
+      type: object
+      required: [reservaId, kmSalida]
+      properties:
+        reservaId:
+          type: string
+        kmSalida:
+          type: integer
+
+    CreateDevolucionRequest:
+      type: object
+      required: [alquilerId, kmEntrada]
+      properties:
+        alquilerId:
+          type: string
+        kmEntrada:
+          type: integer
+        cargoExtra:
+          type: number
+
+    ApiResponseVehiculo:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/VehiculoDto'
+
+    ApiResponseListVehiculos:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/VehiculoDto'
+
+    ApiResponseReserva:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/ReservaDto'
+
+    ApiResponseAlquiler:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/AlquilerDto'
+
+    ApiResponseDevolucion:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/DevolucionDto'
+
+    ApiResponseDisponibilidad:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/DisponibilidadDto'
+
+  responses:
+    NotFound:
+      description: Recurso no encontrado

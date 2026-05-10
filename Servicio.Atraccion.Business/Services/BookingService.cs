@@ -201,6 +201,12 @@ public class BookingService : IBookingService
         if (booking.StatusId == 3) // Completed
             throw new BusinessException("No se puede cancelar una reserva ya completada.");
 
+        // ── PASO 3.1: Verificar Política de Cancelación
+        var slotDateTime = booking.SlotDate.ToDateTime(booking.SlotStartTime);
+        var cancelThreshold = slotDateTime.AddHours(-booking.CancelPolicyHours);
+        if (DateTime.UtcNow > cancelThreshold)
+            throw new BusinessException($"No se puede cancelar la reserva. La política de cancelación es de {booking.CancelPolicyHours} horas de anticipación.");
+
         // ── PASO 4: Actualizar estado a Cancelada (4) ─────────────────────────
         var ok = await _bookingData.UpdateBookingStatusAsync(booking.Id, statusId: 4, request.CancelReason);
         if (!ok)
@@ -228,6 +234,7 @@ public class BookingService : IBookingService
         AttractionName = b.AttractionName,
         SlotDate = b.SlotDate,
         SlotStartTime = b.SlotStartTime,
+        CancelPolicyHours = b.CancelPolicyHours,
         Passengers = b.Details.Select(d => new PassengerDetailResponse
         {
             FullName = $"{d.FirstName} {d.LastName}",
@@ -257,6 +264,7 @@ public class BookingService : IBookingService
     ClientName = b.ClientName,
     ClientEmail = b.UserEmail,
     CanReview = CalculateCanReview(b),
+    CancelPolicyHours = b.CancelPolicyHours,
     Tickets = b.Details.Select(d => new BookingTicketSummary
     {
         CategoryName = d.PriceTierLabel,

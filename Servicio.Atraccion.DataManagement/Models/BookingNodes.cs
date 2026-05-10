@@ -22,6 +22,7 @@ public class BookingNode
     public string ProductTitle { get; set; } = string.Empty;
     public DateOnly SlotDate { get; set; }
     public TimeOnly SlotStartTime { get; set; }
+    public int CancelPolicyHours { get; set; }
     
     public List<BookingDetailNode> Details { get; set; } = [];
 }

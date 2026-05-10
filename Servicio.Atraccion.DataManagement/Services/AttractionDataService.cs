@@ -40,7 +40,7 @@ public class AttractionDataService : IAttractionDataService
             .Include(a => a.Tags).ThenInclude(t => t.Tag)
             .Include(a => a.Inclusions).ThenInclude(i => i.InclusionItem)
             .Include(a => a.Languages)
-            .FirstOrDefaultAsync(a => a.Slug == slug);
+            .FirstOrDefaultAsync(a => a.Slug == slug && a.DeletedAt == null);
 
         if (attraction == null) return null;
 
@@ -94,7 +94,7 @@ public class AttractionDataService : IAttractionDataService
             .Include(a => a.Media.Where(m => m.IsMain))
             .Include(a => a.ProductOptions)
                 .ThenInclude(p => p.PriceTiers)
-            .Where(a => a.IsPublished && a.IsActive)
+            .Where(a => a.IsPublished && a.IsActive && a.DeletedAt == null)
             .OrderByDescending(a => a.RatingAverage)
             .Take(count)
             .ToListAsync();
@@ -125,7 +125,8 @@ public class AttractionDataService : IAttractionDataService
             .Include(a => a.Subcategory).ThenInclude(s => s.Category)
             .Include(a => a.Media.Where(m => m.IsMain))
             .Include(a => a.ProductOptions)
-                .ThenInclude(p => p.PriceTiers);
+                .ThenInclude(p => p.PriceTiers)
+            .Where(a => a.DeletedAt == null);
             
         if (!string.IsNullOrWhiteSpace(filters.SearchTerm))
         {
@@ -262,7 +263,7 @@ public class AttractionDataService : IAttractionDataService
             .Include(a => a.ProductOptions)
                 .ThenInclude(p => p.ScheduleTemplates)
                     .ThenInclude(t => t.Times)
-            .FirstOrDefaultAsync(a => a.Id == id);
+            .FirstOrDefaultAsync(a => a.Id == id && a.DeletedAt == null);
     }
 
     public async Task<bool> UpdateAsync(Attraction attraction)
@@ -292,7 +293,11 @@ public class AttractionDataService : IAttractionDataService
         var existing = await _unitOfWork.Attractions.GetByIdAsync(id);
         if (existing == null) return false;
 
-        _unitOfWork.Attractions.Delete(existing);
+        // Borrado Lógico (Soft Delete)
+        existing.IsActive = false;
+        existing.DeletedAt = DateTime.UtcNow;
+
+        _unitOfWork.Attractions.Update(existing);
         return await _unitOfWork.CompleteAsync() > 0;
     }
 }

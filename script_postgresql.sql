@@ -376,7 +376,7 @@ CREATE TABLE IF NOT EXISTS product_schedule_time (
 
 CREATE TABLE IF NOT EXISTS availability_slot (
     id                 UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-    product_id         UUID        NOT NULL REFERENCES product_option(id),
+    product_id         UUID        NOT NULL REFERENCES product_option(id) ON DELETE CASCADE,
     slot_date          DATE        NOT NULL,
     start_time         TIME        NOT NULL,
     end_time           TIME,

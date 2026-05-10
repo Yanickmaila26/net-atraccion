@@ -99,8 +99,10 @@ public class BookingIntegrationService : IBookingIntegrationService
         // en el rango de fechas pedido
         var slots = await _uow.AvailabilitySlots.Query()
             .Include(s => s.ProductOption)
+                .ThenInclude(po => po.Attraction)
             .Where(s =>
                 s.ProductOption.AttractionId == attractionId &&
+                s.ProductOption.Attraction.DeletedAt == null &&
                 s.IsActive &&
                 s.SlotDate >= fechaInicio &&
                 s.SlotDate <= fechaFin &&
@@ -152,7 +154,8 @@ public class BookingIntegrationService : IBookingIntegrationService
             .FirstOrDefaultAsync(a =>
                 a.Id == attractionId &&
                 a.IsActive &&
-                a.IsPublished);
+                a.IsPublished &&
+                a.DeletedAt == null);
 
         if (attraction == null) return null;
 
