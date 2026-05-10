@@ -38,6 +38,7 @@ public class AttractionSummaryResponse
     public string CurrencyCode { get; set; } = "USD";
     public bool IsActive { get; set; }
     public bool IsPublished { get; set; }
+    public int ModalityCount { get; set; }
 }
 
 /// <summary>Detalle completo de una atracción (incluyendo productos y media).</summary>

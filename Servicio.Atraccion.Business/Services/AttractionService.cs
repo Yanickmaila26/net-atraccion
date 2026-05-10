@@ -674,7 +674,8 @@ public class AttractionService : IAttractionService
             MainImageUrl = mainImage,
             StartingPrice = node.StartingPrice,
             IsActive = node.IsActive,
-            IsPublished = node.IsPublished
+            IsPublished = node.IsPublished,
+            ModalityCount = node.ModalityCount
         };
     }
 

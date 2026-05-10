@@ -113,6 +113,7 @@ public class AttractionDataService : IAttractionDataService
             {
                 node.StartingPrice = prices.Min();
             }
+            node.ModalityCount = entity.ProductOptions.Count;
         }
 
         return nodes;
@@ -225,6 +226,7 @@ public class AttractionDataService : IAttractionDataService
             {
                 node.StartingPrice = prices.Min();
             }
+            node.ModalityCount = entity.ProductOptions.Count;
         }
 
         return new PagedResult<AttractionNode>

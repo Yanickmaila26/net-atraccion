@@ -25,6 +25,7 @@ public class AttractionNode
     public decimal? Longitude { get; set; }
     public bool IsActive { get; set; }
     public bool IsPublished { get; set; }
+    public int ModalityCount { get; set; }
     
     // Jerarquía directa aplanada
     public Guid LocationId { get; set; }
