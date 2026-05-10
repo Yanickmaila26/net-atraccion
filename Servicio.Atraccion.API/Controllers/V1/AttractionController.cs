@@ -181,7 +181,7 @@ public class AttractionController : ControllerBase
 
     /// <summary>
     /// Obtiene el detalle completo de una atracción incluyendo plantillas de horarios para edición.
-    /// Ruta recomendada para el panel administrativo.
+    /// Ruta oficial para el panel administrativo.
     /// </summary>
     [HttpGet("management/{id:guid}")]
     [Authorize(Roles = "Admin,Partner")]
@@ -194,15 +194,5 @@ public class AttractionController : ControllerBase
         if (result == null) return NotFound(new { message = "La atracción no existe o fue eliminada." });
 
         return Ok(result);
-    }
-
-    /// <summary>
-    /// Obtiene el detalle completo de una atracción incluyendo plantillas de horarios para edición.
-    /// </summary>
-    [HttpGet("{id:guid}/complete")]
-    [Authorize(Roles = "Admin,Partner")]
-    public async Task<ActionResult<Servicio.Atraccion.Business.DTOs.Attraction.AttractionFullEditionResponse>> GetComplete(Guid id)
-    {
-        return await GetManagementDetail(id);
     }
 }
