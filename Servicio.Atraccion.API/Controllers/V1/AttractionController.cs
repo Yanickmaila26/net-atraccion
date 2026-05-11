@@ -181,11 +181,10 @@ public class AttractionController : ControllerBase
 
     /// <summary>
     /// Obtiene el detalle completo de una atracción incluyendo plantillas de horarios para edición.
-    /// Ruta oficial para el panel administrativo.
     /// </summary>
-    [HttpGet("management/{id:guid}")]
+    [HttpGet("{id:guid}/complete")]
     [Authorize(Roles = "Admin,Partner")]
-    public async Task<ActionResult<Servicio.Atraccion.Business.DTOs.Attraction.AttractionFullEditionResponse>> GetManagementDetail(Guid id)
+    public async Task<ActionResult<Servicio.Atraccion.Business.DTOs.Attraction.AttractionFullEditionResponse>> GetCompleteDetail(Guid id)
     {
         var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
         bool isAdmin = User.IsInRole("Admin");
