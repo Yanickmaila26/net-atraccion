@@ -65,7 +65,7 @@ public class ClientDataService : IClientDataService
 
         if (!string.IsNullOrWhiteSpace(filters.SearchTerm))
         {
-            query = query.Where(c => c.DocumentNumber == filters.SearchTerm || c.User.Email.Contains(filters.SearchTerm));
+            query = query.Where(c => c.DocumentNumber == filters.SearchTerm || c.User!.Email.Contains(filters.SearchTerm));
         }
 
         var totalCount = await query.CountAsync();

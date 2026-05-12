@@ -51,7 +51,7 @@ public class ClienteQueryRepository : IClienteQueryRepository
     {
         return await _context.Set<Client>()
             .AsNoTracking()
-            .Include(c => c.User)
+            .Include(c => c.User!)
             .ThenInclude(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(c => c.Id == clienteId);
