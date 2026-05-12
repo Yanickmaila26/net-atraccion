@@ -4,7 +4,7 @@ namespace Servicio.Atraccion.DataAccess.Entities;
 
 public class Client : BaseEntity
 {
-    public Guid UserId { get; set; }
+    public Guid? UserId { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string? Phone { get; set; }
@@ -21,7 +21,7 @@ public class Client : BaseEntity
     public string FullName => $"{FirstName} {LastName}".Trim();
 
     // Navegación
-    public virtual User User { get; set; } = null!;
+    public virtual User? User { get; set; }
     public virtual Location? Location { get; set; }
     public virtual Language? Language { get; set; }
 }

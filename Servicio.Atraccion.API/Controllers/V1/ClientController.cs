@@ -43,6 +43,18 @@ public class ClientController : ControllerBase
     }
 
     /// <summary>
+    /// Valida si un cliente existe por su número de documento.
+    /// Útil para el flujo de reservas y POS.
+    /// </summary>
+    [HttpGet("validate/{docNumber}")]
+    [Authorize] // Cualquier usuario autenticado (incluyendo POS/Partners)
+    public async Task<ActionResult<ClienteResponse?>> ValidateClient(string docNumber)
+    {
+        var result = await _clienteService.ObtenerPorDocumentoAsync(docNumber);
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Actualiza el perfil del cliente.
     /// </summary>
     [HttpPut("{id:guid}")]

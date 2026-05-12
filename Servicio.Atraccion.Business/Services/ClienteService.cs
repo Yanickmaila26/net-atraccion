@@ -85,6 +85,12 @@ public class ClienteService : IClienteService
         return dataModel.ToResponse();
     }
 
+    public async Task<ClienteResponse?> ObtenerPorDocumentoAsync(string docNumber)
+    {
+        var dataModel = await _clientDataService.GetByDocumentNumberAsync(docNumber);
+        return dataModel?.ToResponse();
+    }
+
     public async Task<ClienteResponse> ActualizarClienteAsync(Guid userId, ActualizarClienteRequest request)
     {
         if (userId != request.Id)
