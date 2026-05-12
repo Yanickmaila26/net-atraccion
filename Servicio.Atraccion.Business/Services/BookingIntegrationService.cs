@@ -208,6 +208,9 @@ public class BookingIntegrationService : IBookingIntegrationService
             slot.CapacityAvailable -= totalTickets;
             slot.UpdatedAt = DateTime.UtcNow;
 
+            // GENERAR FACTURA (Interna)
+            await GenerarFacturaInternaAsync(booking, request.Billing, details);
+
             await _uow.CompleteAsync();
 
             return ApiResponse<AtraccionBookingResponseDto>.Ok(new AtraccionBookingResponseDto
@@ -224,6 +227,61 @@ public class BookingIntegrationService : IBookingIntegrationService
         catch (Exception ex)
         {
             return ApiResponse<AtraccionBookingResponseDto>.Fail("Error interno al procesar la reserva: " + ex.Message);
+        }
+    }
+
+    private async Task GenerarFacturaInternaAsync(DataAccess.Entities.Booking booking, BillingInfo? billing, List<DataAccess.Entities.BookingDetail> bookingDetails)
+    {
+        const decimal TAX_RATE = 0.15m; // 15% IVA
+
+        // 1. Determinar datos del cliente (Default a Consumidor Final)
+        var customerName = billing?.CustomerName ?? "CONSUMIDOR FINAL";
+        var taxId = billing?.TaxId ?? "9999999999";
+        var email = billing?.Email;
+        var address = billing?.Address ?? "S/N";
+
+        // 2. Calcular impuestos
+        decimal subtotal = booking.TotalAmount / (1 + TAX_RATE);
+        decimal taxAmount = booking.TotalAmount - subtotal;
+
+        // 3. Crear cabecera de factura
+        var invoice = new DataAccess.Entities.Invoice
+        {
+            Id = Guid.NewGuid(),
+            BookingId = booking.Id,
+            InvoiceNumber = $"FAC-{booking.PnrCode}", // Simplificado para el demo
+            CustomerName = customerName,
+            TaxId = taxId,
+            Email = email,
+            Address = address,
+            Subtotal = Math.Round(subtotal, 2),
+            TaxAmount = Math.Round(taxAmount, 2),
+            Total = booking.TotalAmount,
+            CurrencyCode = booking.CurrencyCode,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _uow.Invoices.AddAsync(invoice);
+
+        // 4. Crear detalles de factura
+        foreach (var detail in bookingDetails)
+        {
+            decimal itemSubtotal = detail.UnitPrice / (1 + TAX_RATE);
+            decimal itemTax = detail.UnitPrice - itemSubtotal;
+
+            var invDetail = new DataAccess.Entities.InvoiceDetail
+            {
+                Id = Guid.NewGuid(),
+                InvoiceId = invoice.Id,
+                Description = $"Ticket {detail.FirstName} {detail.LastName}",
+                Quantity = detail.Quantity,
+                UnitPrice = Math.Round(itemSubtotal, 2),
+                TaxRate = TAX_RATE * 100, // Almacenamos 15.00
+                TotalItem = detail.UnitPrice * detail.Quantity,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _uow.InvoiceDetails.AddAsync(invDetail);
         }
     }
 
@@ -287,6 +345,18 @@ public class BookingIntegrationService : IBookingIntegrationService
         }).ToList();
 
         return ApiResponse<List<AtraccionBookingResponseDto>>.Ok(dtos);
+    }
+
+    public async Task<byte[]?> GenerarPdfFacturaAsync(Guid bookingId)
+    {
+        var invoice = await _uow.Invoices.Query()
+            .Include(i => i.Details)
+            .FirstOrDefaultAsync(i => i.BookingId == bookingId);
+
+        if (invoice == null) return null;
+
+        var document = new Templates.InvoiceTemplate(invoice);
+        return document.GeneratePdf();
     }
 
     private string GeneratePnrCode()

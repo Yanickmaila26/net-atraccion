@@ -9,6 +9,9 @@ using Servicio.Atraccion.API.Middleware;   // <-- Añadido
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configurar licencia de QuestPDF (Requerido)
+QuestPDF.Infrastructure.QuestPDFSettings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
 // IHttpContextAccessor: requerido por el factory de conexiones por rol
 builder.Services.AddHttpContextAccessor();
 

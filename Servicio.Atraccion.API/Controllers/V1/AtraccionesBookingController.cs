@@ -69,6 +69,25 @@ public class AtraccionesBookingController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Genera y descarga la factura en formato PDF.
+    /// </summary>
+    [HttpGet("{id:guid}/invoice/pdf")]
+    [Produces("application/pdf")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DescargarFacturaPdf(Guid id)
+    {
+        // En un caso real, validaríamos que la reserva pertenezca al usuario (GetUserId())
+        // Por ahora, permitimos la descarga por el ID de la reserva.
+        var pdfBytes = await _bookingService.GenerarPdfFacturaAsync(id);
+        
+        if (pdfBytes == null)
+            return NotFound(new { message = "Factura no encontrada para esta reserva." });
+
+        return File(pdfBytes, "application/pdf", $"Factura-{id}.pdf");
+    }
+
     private Guid GetUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

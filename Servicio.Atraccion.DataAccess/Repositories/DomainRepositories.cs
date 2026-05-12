@@ -99,3 +99,10 @@ public class ProductScheduleTemplateRepository : GenericRepository<ProductSchedu
 
 public class ProductScheduleTimeRepository : GenericRepository<ProductScheduleTime>, IProductScheduleTimeRepository
 { public ProductScheduleTimeRepository(AtraccionDbContext context) : base(context) { } }
+
+// ── Facturación ──────────────────────────────────────
+public class InvoiceRepository : GenericRepository<Invoice>, IInvoiceRepository
+{ public InvoiceRepository(AtraccionDbContext context) : base(context) { } }
+
+public class InvoiceDetailRepository : GenericRepository<InvoiceDetail>, IInvoiceDetailRepository
+{ public InvoiceDetailRepository(AtraccionDbContext context) : base(context) { } }

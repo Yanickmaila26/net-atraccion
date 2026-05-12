@@ -505,6 +505,37 @@ CREATE TABLE IF NOT EXISTS payment (
 );
 
 -- ============================================================
+-- 11.1 FACTURACIÓN (Interna)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS invoice (
+    id             UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+    booking_id     UUID         NOT NULL REFERENCES booking(id),
+    invoice_number VARCHAR(20)  NOT NULL UNIQUE,
+    customer_name  VARCHAR(150) NOT NULL,
+    tax_id         VARCHAR(20)  NOT NULL, -- RUC, Cédula o 9999999999 para Consumidor Final
+    email          VARCHAR(100),
+    address        TEXT,
+    subtotal       NUMERIC(12,2) NOT NULL DEFAULT 0,
+    tax_amount     NUMERIC(12,2) NOT NULL DEFAULT 0,
+    total          NUMERIC(12,2) NOT NULL DEFAULT 0,
+    currency_code  CHAR(3)      NOT NULL DEFAULT 'USD',
+    created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS invoice_detail (
+    id            UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+    invoice_id    UUID         NOT NULL REFERENCES invoice(id) ON DELETE CASCADE,
+    description   VARCHAR(255) NOT NULL, -- Ej: 'Tour Galápagos - Adulto'
+    quantity      INTEGER      NOT NULL CHECK (quantity > 0),
+    unit_price    NUMERIC(12,2) NOT NULL,
+    tax_rate      NUMERIC(5,2)  NOT NULL, -- Ej: 15.00
+    total_item    NUMERIC(12,2) NOT NULL,
+    created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+
+-- ============================================================
 -- 12. RESEÑAS
 -- ============================================================
 
@@ -569,6 +600,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
 -- ============================================================
 TRUNCATE TABLE
     review_media, review_rating, review,
+    invoice_detail, invoice,
     payment, booking_detail, booking,
     availability_slot,
     product_schedule_time, product_schedule_template,

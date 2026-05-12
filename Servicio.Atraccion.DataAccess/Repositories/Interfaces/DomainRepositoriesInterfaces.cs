@@ -49,3 +49,7 @@ public interface ITourStopRepository : IGenericRepository<TourStop> { }
 // ── Horarios ─────────────────────────────────────────
 public interface IProductScheduleTemplateRepository : IGenericRepository<ProductScheduleTemplate> { }
 public interface IProductScheduleTimeRepository : IGenericRepository<ProductScheduleTime> { }
+
+// ── Facturación ──────────────────────────────────────
+public interface IInvoiceRepository : IGenericRepository<Invoice> { }
+public interface IInvoiceDetailRepository : IGenericRepository<InvoiceDetail> { }

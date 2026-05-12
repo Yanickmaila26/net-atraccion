@@ -172,6 +172,17 @@ public class AtraccionBookingRequestDto
     public List<TicketBookingDetailDto> Tickets { get; set; } = [];
 
     public string? Notas { get; set; }
+    
+    /// <summary>Información opcional para facturación. Si es null, se asume Consumidor Final.</summary>
+    public BillingInfo? Billing { get; set; }
+}
+
+public class BillingInfo
+{
+    public string? CustomerName { get; set; }
+    public string? TaxId { get; set; } // RUC/Cédula
+    public string? Email { get; set; }
+    public string? Address { get; set; }
 }
 
 public class TicketBookingDetailDto

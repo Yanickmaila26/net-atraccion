@@ -47,5 +47,9 @@ public interface IUnitOfWork : IDisposable
     IProductScheduleTemplateRepository ScheduleTemplates { get; }
     IProductScheduleTimeRepository ScheduleTimes { get; }
 
+    // Facturación
+    IInvoiceRepository Invoices { get; }
+    IInvoiceDetailRepository InvoiceDetails { get; }
+
     Task<int> CompleteAsync();
 }

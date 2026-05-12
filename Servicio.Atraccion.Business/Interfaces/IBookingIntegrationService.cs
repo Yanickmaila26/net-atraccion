@@ -43,4 +43,9 @@ public interface IBookingIntegrationService
     /// Lista las reservas realizadas por un usuario.
     /// </summary>
     Task<ApiResponse<List<AtraccionBookingResponseDto>>> ListarMisReservasAsync(Guid userId);
+
+    /// <summary>
+    /// Genera el archivo PDF de la factura asociada a una reserva.
+    /// </summary>
+    Task<byte[]?> GenerarPdfFacturaAsync(Guid bookingId);
 }

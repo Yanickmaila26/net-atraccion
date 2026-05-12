@@ -93,6 +93,12 @@ public class AtraccionDbContext : DbContext
     public DbSet<Payment> Payments { get; set; }
 
     // ══════════════════════════════════════════════════
+    // 9.1 FACTURACIÓN
+    // ══════════════════════════════════════════════════
+    public DbSet<Invoice> Invoices { get; set; }
+    public DbSet<InvoiceDetail> InvoiceDetails { get; set; }
+
+    // ══════════════════════════════════════════════════
     // 10. RESEÑAS
     // ══════════════════════════════════════════════════
     public DbSet<Review> Reviews { get; set; }
@@ -158,7 +164,9 @@ public class AtraccionDbContext : DbContext
         { nameof(ReviewRating), "review_rating" },
         { nameof(ReviewCriteria), "review_criteria" },
         { nameof(ReviewMedia), "review_media" },
-        { nameof(AuditLog), "audit_log" }
+        { nameof(AuditLog), "audit_log" },
+        { nameof(Invoice), "invoice" },
+        { nameof(InvoiceDetail), "invoice_detail" }
     };
 
     foreach (var entity in modelBuilder.Model.GetEntityTypes())

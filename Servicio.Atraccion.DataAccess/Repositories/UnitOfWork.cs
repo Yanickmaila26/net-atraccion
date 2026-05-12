@@ -80,6 +80,12 @@ public class UnitOfWork : IUnitOfWork
     public IProductScheduleTemplateRepository ScheduleTemplates => _scheduleTemplates ??= new ProductScheduleTemplateRepository(_context);
     public IProductScheduleTimeRepository ScheduleTimes => _scheduleTimes ??= new ProductScheduleTimeRepository(_context);
 
+    // Facturación
+    private IInvoiceRepository? _invoices;
+    private IInvoiceDetailRepository? _invoiceDetails;
+    public IInvoiceRepository Invoices => _invoices ??= new InvoiceRepository(_context);
+    public IInvoiceDetailRepository InvoiceDetails => _invoiceDetails ??= new InvoiceDetailRepository(_context);
+
     public async Task<int> CompleteAsync()
     {
         return await _context.SaveChangesAsync();
