@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Servicio.Atraccion.Business.DTOs.Booking;
 using Servicio.Atraccion.Business.Interfaces;
+using QuestPDF.Fluent;
+
 using Servicio.Atraccion.DataAccess.Repositories.Interfaces;
 using Servicio.Atraccion.DataManagement.Interfaces;
 
@@ -205,7 +207,7 @@ public class BookingIntegrationService : IBookingIntegrationService
             }
 
             // RESTAR CUPO
-            slot.CapacityAvailable -= totalTickets;
+            slot.CapacityAvailable -= (short)totalTickets;
             slot.UpdatedAt = DateTime.UtcNow;
 
             // GENERAR FACTURA (Interna)
@@ -292,7 +294,7 @@ public class BookingIntegrationService : IBookingIntegrationService
     public async Task<ApiResponse<bool>> CancelarReservaAsync(Guid bookingId, Guid userId)
     {
         var booking = await _uow.Bookings.Query()
-            .Include(b => b.Slot)
+            .Include(b => b.AvailabilitySlot)
             .FirstOrDefaultAsync(b => b.Id == bookingId && b.UserId == userId);
 
         if (booking == null)
@@ -310,9 +312,8 @@ public class BookingIntegrationService : IBookingIntegrationService
         var totalTickets = await _uow.BookingDetails.Query()
             .Where(d => d.BookingId == bookingId)
             .SumAsync(d => d.Quantity);
-
-        booking.Slot.CapacityAvailable += totalTickets;
-        booking.Slot.UpdatedAt = DateTime.UtcNow;
+        booking.AvailabilitySlot.CapacityAvailable += (short)totalTickets;
+        booking.AvailabilitySlot.UpdatedAt = DateTime.UtcNow;
 
         await _uow.CompleteAsync();
 
@@ -326,7 +327,7 @@ public class BookingIntegrationService : IBookingIntegrationService
     public async Task<ApiResponse<List<AtraccionBookingResponseDto>>> ListarMisReservasAsync(Guid userId)
     {
         var bookings = await _uow.Bookings.Query()
-            .Include(b => b.Slot)
+            .Include(b => b.AvailabilitySlot)
                 .ThenInclude(s => s.ProductOption)
                     .ThenInclude(po => po.Attraction)
             .Where(b => b.UserId == userId)
@@ -340,8 +341,8 @@ public class BookingIntegrationService : IBookingIntegrationService
             Status = b.StatusId switch { 1 => "Pending", 2 => "Confirmed", 3 => "Cancelled", _ => "Unknown" },
             TotalAmount = b.TotalAmount,
             Currency = b.CurrencyCode,
-            ActivityDate = b.Slot.SlotDate.ToDateTime(b.Slot.StartTime),
-            AttractionName = b.Slot.ProductOption.Attraction.Name
+            ActivityDate = b.AvailabilitySlot.SlotDate.ToDateTime(b.AvailabilitySlot.StartTime),
+            AttractionName = b.AvailabilitySlot.ProductOption.Attraction.Name
         }).ToList();
 
         return ApiResponse<List<AtraccionBookingResponseDto>>.Ok(dtos);
