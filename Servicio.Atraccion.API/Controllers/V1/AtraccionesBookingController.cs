@@ -93,7 +93,9 @@ public class AtraccionesBookingController : ControllerBase
 
     private Guid GetUserId()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                       ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+                       
         if (string.IsNullOrEmpty(userIdClaim))
             throw new UnauthorizedAccessException("Usuario no identificado en el token.");
 

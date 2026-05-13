@@ -159,9 +159,13 @@ public class BookingIntegrationService : IBookingIntegrationService
 
         foreach (var t in request.Tickets)
         {
-            // Buscamos el precio para esta categoría en este producto
+            // Buscamos el precio para esta categoría en este producto usando PriceTierId o TicketCategoryId
             var priceTier = await _uow.PriceTiers.Query()
-                .FirstOrDefaultAsync(pt => pt.ProductId == slot.ProductId && pt.TicketCategoryId == t.TicketCategoryId && pt.IsActive);
+                .FirstOrDefaultAsync(pt => 
+                    pt.ProductId == slot.ProductId && 
+                    ((t.PriceTierId != null && pt.Id == t.PriceTierId) || 
+                     (t.PriceTierId == null && pt.TicketCategoryId == t.TicketCategoryId)) && 
+                    pt.IsActive);
 
             if (priceTier == null)
                 return ApiResponse<AtraccionBookingResponseDto>.Fail("Una de las categorías de ticket seleccionadas no es válida para esta opción.");
