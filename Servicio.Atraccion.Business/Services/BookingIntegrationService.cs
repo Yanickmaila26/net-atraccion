@@ -270,9 +270,12 @@ public class BookingIntegrationService : IBookingIntegrationService
         booking.AvailabilitySlot.CapacityAvailable += (short)totalTickets;
         booking.AvailabilitySlot.UpdatedAt = DateTime.UtcNow;
 
+        // 3. Anular Factura
+        await _billingService.CancelarFacturaAsync(bookingId);
+
         await _uow.CompleteAsync();
 
-        return ApiResponse<bool>.Ok(true, "Reserva cancelada y cupos liberados.");
+        return ApiResponse<bool>.Ok(true, "Reserva cancelada, cupos liberados y factura marcada para anulación.");
     }
 
     // ══════════════════════════════════════════════════

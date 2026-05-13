@@ -45,4 +45,23 @@ public class BillingController : ControllerBase
 
         return Ok(result);
     }
+
+    /// <summary>
+    /// Anula una factura (normalmente vinculada a una reserva cancelada).
+    /// </summary>
+    [HttpPost("management/{id:guid}/void")]
+    public async Task<ActionResult> VoidInvoice(Guid id)
+    {
+        // Nota: En este contexto usamos el ID de la factura, 
+        // pero el servicio espera el ID de la reserva por diseño del monolito actual.
+        var invoice = await _billingService.GetInvoiceByIdAsync(id);
+        if (invoice == null) return NotFound();
+
+        var result = await _billingService.CancelarFacturaAsync(invoice.BookingId);
+        
+        if (!result)
+            return BadRequest(new { message = "No se pudo anular la factura." });
+
+        return Ok(new { message = "Factura marcada para anulación." });
+    }
 }

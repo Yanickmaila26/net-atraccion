@@ -8,4 +8,5 @@ public interface IBillingService
     Task<PagedResult<InvoiceSummaryResponse>> GetManagementInvoicesAsync(QueryFilters filters);
     Task<InvoiceFullResponse?> GetInvoiceByIdAsync(Guid id);
     Task CrearFacturaAsync(DataAccess.Entities.Booking booking, DTOs.Booking.BillingInfo? billing, List<DataAccess.Entities.BookingDetail> bookingDetails);
+    Task<bool> CancelarFacturaAsync(Guid bookingId);
 }
