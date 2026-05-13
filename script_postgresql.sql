@@ -520,8 +520,11 @@ CREATE TABLE IF NOT EXISTS invoice (
     tax_amount     NUMERIC(12,2) NOT NULL DEFAULT 0,
     total          NUMERIC(12,2) NOT NULL DEFAULT 0,
     currency_code  CHAR(3)      NOT NULL DEFAULT 'USD',
+    
     created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
+
+-- ALTER TABLE invoice ADD COLUMN IF NOT EXISTS currency_code VARCHAR(3) NOT NULL DEFAULT 'USD';
 
 CREATE TABLE IF NOT EXISTS invoice_detail (
     id            UUID         PRIMARY KEY DEFAULT gen_random_uuid(),

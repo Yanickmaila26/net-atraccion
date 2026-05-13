@@ -31,6 +31,9 @@ public class AtraccionesBookingController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiResponse<AtraccionBookingResponseDto>>> CrearReserva([FromBody] AtraccionBookingRequestDto request)
     {
+        // Normalizar: convierte passengers→tickets y contactName→billing si es necesario
+        request.Normalize();
+
         var userId = GetUserId();
         var result = await _bookingService.CrearReservaAsync(request, userId);
 

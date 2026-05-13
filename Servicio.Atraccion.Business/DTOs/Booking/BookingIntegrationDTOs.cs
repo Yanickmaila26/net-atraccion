@@ -168,13 +168,75 @@ public class AtraccionBookingRequestDto
     /// <summary>ID del slot de disponibilidad elegido.</summary>
     public Guid SlotId { get; set; }
 
-    /// <summary>Lista de pasajeros y sus categorías de ticket.</summary>
-    public List<TicketBookingDetailDto> Tickets { get; set; } = [];
+    /// <summary>Lista de pasajeros en formato frontend (passengers[]).</summary>
+    public List<PassengerBookingDto>? Passengers { get; set; }
+
+    /// <summary>Lista de tickets en formato alternativo (tickets[]). Se usa si Passengers es null.</summary>
+    public List<TicketBookingDetailDto>? Tickets { get; set; }
+
+    /// <summary>Nombre de contacto (va a billing.CustomerName si no se envía Billing).</summary>
+    public string? ContactName { get; set; }
+
+    /// <summary>Email de contacto (va a billing.Email si no se envía Billing).</summary>
+    public string? ContactEmail { get; set; }
+
+    /// <summary>Indica si es una venta desde POS (punto de venta físico).</summary>
+    public bool IsPosSale { get; set; } = false;
 
     public string? Notas { get; set; }
-    
-    /// <summary>Información opcional para facturación. Si es null, se asume Consumidor Final.</summary>
+
+    /// <summary>Información opcional para facturación. Si es null, se construye desde ContactName/Email.</summary>
     public BillingInfo? Billing { get; set; }
+
+    /// <summary>Normaliza el DTO: convierte Passengers a Tickets y rellena Billing si faltan datos.</summary>
+    public void Normalize()
+    {
+        // Si llegan passengers pero no tickets, convertir
+        if ((Tickets == null || Tickets.Count == 0) && Passengers != null)
+        {
+            Tickets = [];
+            foreach (var p in Passengers)
+            {
+                int count = p.Quantity > 0 ? p.Quantity : 1;
+                for (int i = 0; i < count; i++)
+                {
+                    Tickets.Add(new TicketBookingDetailDto
+                    {
+                        TicketCategoryId = p.TicketCategoryId ?? Guid.Empty,
+                        PriceTierId = p.PriceTierId,
+                        FirstName = p.FirstName,
+                        LastName = p.LastName,
+                        DocumentNumber = p.DocumentNumber ?? string.Empty,
+                        DocumentType = p.DocumentType
+                    });
+                }
+            }
+        }
+
+        // Si no hay billing pero hay contactName, construir billing básico
+        if (Billing == null && !string.IsNullOrEmpty(ContactName))
+        {
+            Billing = new BillingInfo
+            {
+                CustomerName = ContactName,
+                Email = ContactEmail
+            };
+        }
+    }
+}
+
+/// <summary>
+/// Formato de pasajero enviado por el frontend.
+/// </summary>
+public class PassengerBookingDto
+{
+    public Guid? TicketCategoryId { get; set; }
+    public Guid? PriceTierId { get; set; }
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string? DocumentNumber { get; set; }
+    public string? DocumentType { get; set; }
+    public int Quantity { get; set; } = 1;
 }
 
 public class BillingInfo
@@ -189,7 +251,7 @@ public class TicketBookingDetailDto
 {
     /// <summary>ID de la categoría de ticket (Adulto, Niño, etc.)</summary>
     public Guid TicketCategoryId { get; set; }
-    
+
     /// <summary>ID del PriceTier específico para asegurar el precio congelado (opcional)</summary>
     public Guid? PriceTierId { get; set; }
 
