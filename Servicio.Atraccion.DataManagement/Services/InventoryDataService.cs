@@ -36,7 +36,7 @@ public class InventoryDataService : IInventoryDataService
             .OrderBy(s => s.SlotDate).ThenBy(s => s.StartTime)
             .ToListAsync();
 
-        return _mapper.Map<IEnumerable<AvailabilitySlotNode>>(slots);
+        return _mapper.Map<IEnumerable<AvailabilitySlotNode>>(slots).ToList();
     }
 
     public async Task<IEnumerable<ProductNode>> GetProductsAsync(Guid attractionId, short? languageId = null)

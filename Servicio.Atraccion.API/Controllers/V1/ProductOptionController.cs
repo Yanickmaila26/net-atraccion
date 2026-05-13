@@ -180,14 +180,19 @@ public class ProductOptionController : ControllerBase
             .ThenBy(s => s.StartTime)
             .ToListAsync();
 
-        // Obtener IDs con reservas activas en una sola consulta (sin N+1)
+        // Obtener IDs con reservas activas
         var slotIds = slots.Select(s => s.Id).ToList();
-        var bookedSlotIds = await _db.Bookings
-            .Where(b => slotIds.Contains(b.SlotId) && b.StatusId != 4)
-            .Select(b => b.SlotId)
-            .Distinct()
-            .ToListAsync();
-        var bookedSet = bookedSlotIds.ToHashSet();
+        var bookedSet = new HashSet<Guid>();
+        
+        if (slotIds.Any())
+        {
+            var bookedSlotIds = await _db.Bookings
+                .Where(b => slotIds.Contains(b.SlotId) && b.StatusId != 4)
+                .Select(b => b.SlotId)
+                .Distinct()
+                .ToListAsync();
+            bookedSet = bookedSlotIds.ToHashSet();
+        }
 
         var result = slots.Select(s => new AvailabilitySlotResponse
         {
@@ -201,7 +206,7 @@ public class ProductOptionController : ControllerBase
             IsActive          = s.IsActive,
             HasBookings       = bookedSet.Contains(s.Id),
             Notes             = s.Notes
-        });
+        }).ToList(); // Forzar ejecución para evitar errores de serialización diferida
 
         return Ok(result);
     }
