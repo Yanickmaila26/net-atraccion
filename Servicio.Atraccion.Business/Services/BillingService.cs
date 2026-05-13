@@ -154,6 +154,27 @@ public class BillingService : IBillingService
         await _uow.CompleteAsync();
     }
 
+    public async Task<IEnumerable<InvoiceSummaryResponse>> GetUserInvoicesAsync(Guid userId)
+    {
+        var items = await _uow.Invoices.Query()
+            .Include(i => i.Booking)
+            .Where(i => i.Booking.UserId == userId)
+            .OrderByDescending(i => i.CreatedAt)
+            .ToListAsync();
+
+        return items.Select(i => new InvoiceSummaryResponse
+        {
+            Id = i.Id,
+            BookingId = i.BookingId,
+            InvoiceNumber = i.InvoiceNumber,
+            CustomerName = i.CustomerName,
+            TaxId = i.TaxId,
+            Total = i.Total,
+            Currency = i.CurrencyCode,
+            CreatedAt = i.CreatedAt
+        }).ToList();
+    }
+
     public async Task<bool> CancelarFacturaAsync(Guid bookingId)
     {
         var invoice = await _uow.Invoices.Query()

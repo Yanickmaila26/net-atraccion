@@ -31,6 +31,20 @@ public class BillingController : ControllerBase
         var result = await _billingService.GetManagementInvoicesAsync(filters);
         return Ok(result);
     }
+ 
+    /// <summary>
+    /// Obtiene el listado de facturas del cliente autenticado.
+    /// </summary>
+    [HttpGet("my-invoices")]
+    public async Task<ActionResult<IEnumerable<InvoiceSummaryResponse>>> GetMyInvoices()
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+ 
+        var userId = Guid.Parse(userIdClaim.Value);
+        var result = await _billingService.GetUserInvoicesAsync(userId);
+        return Ok(result);
+    }
 
     /// <summary>
     /// Obtiene el detalle completo de una factura específica.
