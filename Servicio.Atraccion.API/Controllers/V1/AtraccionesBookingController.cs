@@ -29,18 +29,31 @@ public class AtraccionesBookingController : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<AtraccionBookingResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<AtraccionBookingResponseDto>>> CrearReserva([FromBody] AtraccionBookingRequestDto request)
+    public async Task<IActionResult> CrearReserva([FromBody] AtraccionBookingRequestDto request)
     {
-        // Normalizar: convierte passengers→tickets y contactName→billing si es necesario
-        request.Normalize();
+        try 
+        {
+            // Normalizar: convierte passengers→tickets y contactName→billing si es necesario
+            request.Normalize();
 
-        var userId = GetUserId();
-        var result = await _bookingService.CrearReservaAsync(request, userId);
+            var userId = GetUserId();
+            var result = await _bookingService.CrearReservaAsync(request, userId);
 
-        if (!result.Success)
-            return BadRequest(result);
+            if (!result.Success)
+                return BadRequest(result);
 
-        return Ok(result);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            // Retornamos 200 con éxito falso para asegurar que el CORS no bloquee la lectura del error
+            return Ok(new { 
+                success = false, 
+                message = "DIAGNÓSTICO: " + ex.Message, 
+                inner = ex.InnerException?.Message,
+                stack = ex.StackTrace?.Substring(0, 200)
+            });
+        }
     }
 
     /// <summary>
