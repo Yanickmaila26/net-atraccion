@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Servicio.Atraccion.Business.DTOs.Billing;
 using Servicio.Atraccion.Business.Interfaces;
 using Servicio.Atraccion.DataAccess.Common;
@@ -9,10 +10,12 @@ namespace Servicio.Atraccion.Business.Services;
 public class BillingService : IBillingService
 {
     private readonly IUnitOfWork _uow;
+    private readonly IConfiguration _configuration;
 
-    public BillingService(IUnitOfWork uow)
+    public BillingService(IUnitOfWork uow, IConfiguration configuration)
     {
         _uow = uow;
+        _configuration = configuration;
     }
 
     public async Task<PagedResult<InvoiceSummaryResponse>> GetManagementInvoicesAsync(QueryFilters filters)
@@ -89,7 +92,8 @@ public class BillingService : IBillingService
 
     public async Task CrearFacturaAsync(DataAccess.Entities.Booking booking, DTOs.Booking.BillingInfo? billing, List<DataAccess.Entities.BookingDetail> bookingDetails)
     {
-        const decimal TAX_RATE = 0.15m; // 15% IVA
+        // Leer tasa de IVA de configuración (Default 15%)
+        decimal TAX_RATE = _configuration.GetValue<decimal?>("Billing:TaxRate") ?? 0.15m;
 
         // 1. Determinar datos del cliente (Default a Consumidor Final)
         var customerName = billing?.CustomerName ?? "CONSUMIDOR FINAL";

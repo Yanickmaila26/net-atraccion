@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Servicio.Atraccion.Business.DTOs.Booking;
 using Servicio.Atraccion.Business.Interfaces;
 using QuestPDF.Fluent;
@@ -18,17 +19,20 @@ public class BookingIntegrationService : IBookingIntegrationService
     private readonly IInventoryDataService _inventoryData;
     private readonly IBillingService _billingService;
     private readonly IUnitOfWork _uow;
+    private readonly IConfiguration _configuration;
 
     public BookingIntegrationService(
         IAttractionDataService attractionData,
         IInventoryDataService inventoryData,
         IBillingService billingService,
-        IUnitOfWork uow)
+        IUnitOfWork uow,
+        IConfiguration configuration)
     {
         _attractionData = attractionData;
         _inventoryData = inventoryData;
         _billingService = billingService;
         _uow = uow;
+        _configuration = configuration;
     }
 
     // ══════════════════════════════════════════════════
@@ -193,6 +197,10 @@ public class BookingIntegrationService : IBookingIntegrationService
             });
         }
 
+        // Aplicar IVA al total (Default 15%)
+        decimal taxRate = _configuration.GetValue<decimal?>("Billing:TaxRate") ?? 0.15m;
+        totalAmount = totalAmount * (1 + taxRate);
+
         // 3. Crear la cabecera de la reserva
         var booking = new DataAccess.Entities.Booking
         {
@@ -201,7 +209,7 @@ public class BookingIntegrationService : IBookingIntegrationService
             UserId = userId,
             SlotId = slot.Id,
             StatusId = 2, // Confirmed (asumimos pago o reserva inmediata para este flujo)
-            TotalAmount = totalAmount,
+            TotalAmount = Math.Round(totalAmount, 2),
             CurrencyCode = currency,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
