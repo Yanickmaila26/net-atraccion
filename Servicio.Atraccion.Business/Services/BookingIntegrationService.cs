@@ -197,8 +197,15 @@ public class BookingIntegrationService : IBookingIntegrationService
             });
         }
 
-        // Aplicar IVA al total (Default 15%)
-        decimal taxRate = _configuration.GetValue<decimal?>("Billing:TaxRate") ?? 0.15m;
+        // Aplicar IVA al total con fallback seguro
+        decimal taxRate = 0.15m;
+        try {
+            var configValue = _configuration["Billing:TaxRate"];
+            if (!string.IsNullOrEmpty(configValue)) {
+                taxRate = decimal.Parse(configValue, System.Globalization.CultureInfo.InvariantCulture);
+            }
+        } catch { /* Usar default 0.15 */ }
+        
         totalAmount = totalAmount * (1 + taxRate);
 
         // 3. Crear la cabecera de la reserva

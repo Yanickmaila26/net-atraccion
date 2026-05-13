@@ -92,8 +92,14 @@ public class BillingService : IBillingService
 
     public async Task CrearFacturaAsync(DataAccess.Entities.Booking booking, DTOs.Booking.BillingInfo? billing, List<DataAccess.Entities.BookingDetail> bookingDetails)
     {
-        // Leer tasa de IVA de configuración (Default 15%)
-        decimal TAX_RATE = _configuration.GetValue<decimal?>("Billing:TaxRate") ?? 0.15m;
+        // Leer tasa de IVA de configuración con fallback seguro
+        decimal TAX_RATE = 0.15m;
+        try {
+            var configValue = _configuration["Billing:TaxRate"];
+            if (!string.IsNullOrEmpty(configValue)) {
+                TAX_RATE = decimal.Parse(configValue, System.Globalization.CultureInfo.InvariantCulture);
+            }
+        } catch { /* Usar default 0.15 */ }
 
         // 1. Determinar datos del cliente (Default a Consumidor Final)
         var customerName = billing?.CustomerName ?? "CONSUMIDOR FINAL";
