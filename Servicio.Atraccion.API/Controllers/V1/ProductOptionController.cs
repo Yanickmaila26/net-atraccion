@@ -166,10 +166,13 @@ public class ProductOptionController : ControllerBase
         [FromQuery] DateOnly? fromDate,
         [FromQuery] DateOnly? toDate)
     {
-        var query = _db.AvailabilitySlots
-            .Where(s => s.ProductId == productId);
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var start = fromDate ?? today;
+        if (start < today) start = today;
 
-        if (fromDate.HasValue) query = query.Where(s => s.SlotDate >= fromDate.Value);
+        var query = _db.AvailabilitySlots
+            .Where(s => s.ProductId == productId && s.SlotDate >= start);
+
         if (toDate.HasValue)   query = query.Where(s => s.SlotDate <= toDate.Value);
 
         var slots = await query

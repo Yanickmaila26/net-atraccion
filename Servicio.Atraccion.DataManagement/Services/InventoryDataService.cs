@@ -20,13 +20,17 @@ public class InventoryDataService : IInventoryDataService
 
     public async Task<IEnumerable<AvailabilitySlotNode>> GetAvailabilityAsync(Guid attractionId, DateTime startDate, DateTime endDate)
     {
-        // En lugar de llamar repositorio genérico as-is, consultamos los slots anidados
-        // O usamos repositorios específicos
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var start = DateOnly.FromDateTime(startDate);
+        if (start < today) start = today;
+
+        var end = DateOnly.FromDateTime(endDate);
+
         var slots = await _unitOfWork.AvailabilitySlots.Query()
             .Include(s => s.ProductOption)
             .Where(s => s.ProductOption.AttractionId == attractionId 
-                        && s.SlotDate >= DateOnly.FromDateTime(startDate) 
-                        && s.SlotDate <= DateOnly.FromDateTime(endDate)
+                        && s.SlotDate >= start 
+                        && s.SlotDate <= end
                         && s.CapacityAvailable > 0
                         && s.IsActive)
             .OrderBy(s => s.SlotDate).ThenBy(s => s.StartTime)

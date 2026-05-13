@@ -12,7 +12,7 @@ namespace Servicio.Atraccion.API.Controllers.V1;
 /// </summary>
 [ApiController]
 [Route("api/v1/[controller]")]
-[Authorize(Roles = "Admin,Partner")] // Solo personal autorizado
+[Authorize(Roles = "Admin,Partner,Client")] // Permitir a clientes ver sus facturas
 public class BillingController : ControllerBase
 {
     private readonly IBillingService _billingService;

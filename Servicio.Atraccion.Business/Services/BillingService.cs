@@ -150,6 +150,8 @@ public class BillingService : IBillingService
 
             await _uow.InvoiceDetails.AddAsync(invDetail);
         }
+
+        await _uow.CompleteAsync();
     }
 
     public async Task<bool> CancelarFacturaAsync(Guid bookingId)
