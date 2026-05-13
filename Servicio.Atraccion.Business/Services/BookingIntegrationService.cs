@@ -147,6 +147,8 @@ public class BookingIntegrationService : IBookingIntegrationService
         var slot = await _uow.AvailabilitySlots.Query()
             .Include(s => s.ProductOption)
                 .ThenInclude(po => po.Attraction)
+            .Include(s => s.ProductOption)
+                .ThenInclude(po => po.PriceTiers)
             .FirstOrDefaultAsync(s => s.Id == request.SlotId && s.IsActive);
 
         if (slot == null)
@@ -156,9 +158,12 @@ public class BookingIntegrationService : IBookingIntegrationService
         if (slot.CapacityAvailable < totalTickets)
             return ApiResponse<AtraccionBookingResponseDto>.Fail($"No hay cupos suficientes. Cupos restantes: {slot.CapacityAvailable}");
 
-        // 2. Calcular montos (en un caso real, validaríamos los precios contra la DB)
+        // 2. Calcular montos
         decimal totalAmount = 0;
         var details = new List<DataAccess.Entities.BookingDetail>();
+        
+        // Obtener moneda por defecto del producto
+        string currency = slot.ProductOption.PriceTiers.FirstOrDefault(pt => pt.IsActive)?.CurrencyCode ?? "USD";
 
         foreach (var t in request.Tickets)
         {
@@ -197,7 +202,7 @@ public class BookingIntegrationService : IBookingIntegrationService
             SlotId = slot.Id,
             StatusId = 2, // Confirmed (asumimos pago o reserva inmediata para este flujo)
             TotalAmount = totalAmount,
-            CurrencyCode = slot.ProductOption.PriceTiers.FirstOrDefault()?.CurrencyCode ?? "USD",
+            CurrencyCode = currency,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
