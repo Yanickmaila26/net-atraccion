@@ -28,6 +28,7 @@ public class AuthService : IAuthService
         var user = await _unitOfWork.Users.Query()
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
+            .Include(u => u.Client)
             .FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive);
 
         if (user == null || !BCryptNet.Verify(request.Password, user.PasswordHash))
@@ -48,6 +49,7 @@ public class AuthService : IAuthService
         var user = await _unitOfWork.Users.Query()
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
+            .Include(u => u.Client)
             .FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive);
 
         if (user == null || !BCryptNet.Verify(request.Password, user.PasswordHash))
@@ -157,6 +159,8 @@ public class AuthService : IAuthService
             {
                 UserId = user.Id,
                 Email = user.Email,
+                FirstName = user.Client?.FirstName ?? string.Empty,
+                LastName = user.Client?.LastName ?? string.Empty,
                 Roles = roles
             }
         };
