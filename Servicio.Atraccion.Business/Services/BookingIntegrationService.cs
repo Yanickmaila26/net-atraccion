@@ -232,7 +232,8 @@ public class BookingIntegrationService : IBookingIntegrationService
         }
         catch (Exception ex)
         {
-            return ApiResponse<AtraccionBookingResponseDto>.Fail("Error interno al procesar la reserva: " + ex.Message);
+            var errorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+            return ApiResponse<AtraccionBookingResponseDto>.Fail("Error de BD/Interno al procesar la reserva: " + errorMsg);
         }
     }
 
