@@ -7,7 +7,6 @@ namespace Servicio.Atraccion.API.Controllers.V1;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-[AllowAnonymous]
 public class InclusionController : ControllerBase
 {
     private readonly IMasterDataService _masterData;
@@ -18,6 +17,7 @@ public class InclusionController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<InclusionResponse>>> GetAll()
     {
         var result = await _masterData.GetInclusionsAsync();
@@ -25,6 +25,7 @@ public class InclusionController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<ActionResult<InclusionResponse>> GetById(Guid id)
     {
         var result = await _masterData.GetInclusionByIdAsync(id);

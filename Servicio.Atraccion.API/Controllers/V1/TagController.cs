@@ -7,7 +7,6 @@ namespace Servicio.Atraccion.API.Controllers.V1;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-[AllowAnonymous] // Catálogos suelen ser públicos o para cualquier usuario autenticado
 public class TagController : ControllerBase
 {
     private readonly IMasterDataService _masterData;
@@ -18,6 +17,7 @@ public class TagController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<TagResponse>>> GetAll()
     {
         var result = await _masterData.GetTagsAsync();
@@ -25,6 +25,7 @@ public class TagController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<ActionResult<TagResponse>> GetById(Guid id)
     {
         var result = await _masterData.GetTagByIdAsync(id);

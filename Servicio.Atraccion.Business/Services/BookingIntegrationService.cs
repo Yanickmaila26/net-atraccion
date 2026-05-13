@@ -152,7 +152,7 @@ public class BookingIntegrationService : IBookingIntegrationService
         if (slot == null)
             return ApiResponse<AtraccionBookingResponseDto>.Fail("El horario seleccionado ya no está disponible.");
 
-        int totalTickets = request.Tickets.Count;
+        int totalTickets = request.Tickets!.Count;
         if (slot.CapacityAvailable < totalTickets)
             return ApiResponse<AtraccionBookingResponseDto>.Fail($"No hay cupos suficientes. Cupos restantes: {slot.CapacityAvailable}");
 

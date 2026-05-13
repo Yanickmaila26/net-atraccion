@@ -31,23 +31,16 @@ public class AtraccionesBookingController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiResponse<AtraccionBookingResponseDto>>> CrearReserva([FromBody] AtraccionBookingRequestDto request)
     {
-        try 
-        {
-            // Normalizar: convierte passengers→tickets y contactName→billing si es necesario
-            request.Normalize();
+        // Normalizar: convierte passengers→tickets y contactName→billing si es necesario
+        request.Normalize();
 
-            var userId = GetUserId();
-            var result = await _bookingService.CrearReservaAsync(request, userId);
+        var userId = GetUserId();
+        var result = await _bookingService.CrearReservaAsync(request, userId);
 
-            if (!result.Success)
-                return BadRequest(result);
+        if (!result.Success)
+            return BadRequest(result);
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ApiResponse<AtraccionBookingResponseDto>.Fail("Error fatal en controlador: " + ex.Message + (ex.InnerException != null ? " | " + ex.InnerException.Message : "")));
-        }
+        return Ok(result);
     }
 
     /// <summary>
