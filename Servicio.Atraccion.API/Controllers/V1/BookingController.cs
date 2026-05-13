@@ -8,7 +8,7 @@ using Servicio.Atraccion.DataAccess.Common;
 namespace Servicio.Atraccion.API.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/admin-booking")]
 [Authorize] // Todas las acciones de reserva requieren un usuario autenticado por defecto
 public class BookingController : ControllerBase
 {
