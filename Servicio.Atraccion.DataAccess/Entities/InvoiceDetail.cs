@@ -29,6 +29,4 @@ public class InvoiceDetail
 
     [Column(TypeName = "decimal(12,2)")]
     public decimal TotalItem { get; set; }
-
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

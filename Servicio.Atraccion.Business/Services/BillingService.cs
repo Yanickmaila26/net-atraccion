@@ -144,8 +144,7 @@ public class BillingService : IBillingService
                 Quantity = detail.Quantity,
                 UnitPrice = Math.Round(itemSubtotal, 2),
                 TaxRate = TAX_RATE * 100, // Almacenamos 15.00
-                TotalItem = detail.UnitPrice * detail.Quantity,
-                CreatedAt = DateTime.UtcNow
+                TotalItem = detail.UnitPrice * detail.Quantity
             };
 
             await _uow.InvoiceDetails.AddAsync(invDetail);
