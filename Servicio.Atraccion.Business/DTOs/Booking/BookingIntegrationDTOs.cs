@@ -280,4 +280,5 @@ public class AtraccionBookingResponseDto
     
     public string AttractionName { get; set; } = string.Empty;
     public string? AttractionImage { get; set; }
+    public int TotalPassengers { get; set; }
 }
