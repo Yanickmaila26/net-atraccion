@@ -279,4 +279,5 @@ public class AtraccionBookingResponseDto
     public DateTime ActivityDate { get; set; }
     
     public string AttractionName { get; set; } = string.Empty;
+    public string? AttractionImage { get; set; }
 }

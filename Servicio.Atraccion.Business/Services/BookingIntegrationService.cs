@@ -237,8 +237,9 @@ public class BookingIntegrationService : IBookingIntegrationService
             slot.CapacityAvailable -= (short)totalTickets;
             slot.UpdatedAt = DateTime.UtcNow;
 
-            // GENERAR FACTURA (A través del servicio de Billing)
-            await _billingService.CrearFacturaAsync(booking, request.Billing, details);
+            // NOTA: La generación de factura ha sido desacoplada.
+            // Ahora el Frontend debe llamar a POST /api/v1/billing/invoice/{bookingId}
+            // en un paso secundario.
 
             await _uow.CompleteAsync();
 
@@ -250,7 +251,9 @@ public class BookingIntegrationService : IBookingIntegrationService
                 TotalAmount = totalAmount,
                 Currency = booking.CurrencyCode,
                 ActivityDate = slot.SlotDate.ToDateTime(slot.StartTime),
-                AttractionName = slot.ProductOption.Attraction.Name
+                AttractionName = slot.ProductOption.Attraction.Name,
+                AttractionImage = slot.ProductOption.Attraction.Media?.FirstOrDefault(m => m.IsMain)?.Url 
+                               ?? slot.ProductOption.Attraction.Media?.FirstOrDefault()?.Url
             }, "Reserva creada exitosamente.");
         }
         catch (Exception ex)
@@ -275,11 +278,11 @@ public class BookingIntegrationService : IBookingIntegrationService
         if (booking == null)
             return ApiResponse<bool>.Fail("Reserva no encontrada.");
 
-        if (booking.StatusId == 3) // Cancelled
+        if (booking.StatusId == 4) // Cancelled
             return ApiResponse<bool>.Fail("La reserva ya se encuentra cancelada.");
 
         // 1. Cambiar estado
-        booking.StatusId = 3; // Cancelled
+        booking.StatusId = 4; // Cancelled
         booking.CancelledAt = DateTime.UtcNow;
         booking.UpdatedAt = DateTime.UtcNow;
 
@@ -308,6 +311,7 @@ public class BookingIntegrationService : IBookingIntegrationService
             .Include(b => b.AvailabilitySlot)
                 .ThenInclude(s => s.ProductOption)
                     .ThenInclude(po => po.Attraction)
+                        .ThenInclude(a => a.Media)
             .Where(b => b.UserId == userId)
             .OrderByDescending(b => b.CreatedAt)
             .ToListAsync();
@@ -316,11 +320,13 @@ public class BookingIntegrationService : IBookingIntegrationService
         {
             BookingId = b.Id,
             PnrCode = b.PnrCode,
-            Status = b.StatusId switch { 1 => "Pending", 2 => "Confirmed", 3 => "Cancelled", _ => "Unknown" },
+            Status = b.StatusId switch { 1 => "Pending", 2 => "Confirmed", 3 => "Completed", 4 => "Cancelled", _ => "Unknown" },
             TotalAmount = b.TotalAmount,
             Currency = b.CurrencyCode,
             ActivityDate = b.AvailabilitySlot.SlotDate.ToDateTime(b.AvailabilitySlot.StartTime),
-            AttractionName = b.AvailabilitySlot.ProductOption.Attraction.Name
+            AttractionName = b.AvailabilitySlot.ProductOption.Attraction.Name,
+            AttractionImage = b.AvailabilitySlot.ProductOption.Attraction.Media?.FirstOrDefault(m => m.IsMain)?.Url 
+                           ?? b.AvailabilitySlot.ProductOption.Attraction.Media?.FirstOrDefault()?.Url
         }).ToList();
 
         return ApiResponse<List<AtraccionBookingResponseDto>>.Ok(dtos);
