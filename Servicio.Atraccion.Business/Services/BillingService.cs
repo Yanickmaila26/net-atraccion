@@ -175,6 +175,26 @@ public class BillingService : IBillingService
         }).ToList();
     }
 
+    public async Task<bool> GenerarFacturaAsync(Guid bookingId, DTOs.Booking.BillingInfo billingInfo)
+    {
+        var booking = await _uow.Bookings.Query()
+            .Include(b => b.Details)
+            .FirstOrDefaultAsync(b => b.Id == bookingId);
+
+        if (booking == null) return false;
+
+        // Verificar que no exista ya una factura para no duplicar
+        var existing = await _uow.Invoices.Query().AnyAsync(i => i.BookingId == bookingId);
+        if (existing) return true;
+
+        // Generamos la factura con los datos proporcionados
+        await CrearFacturaAsync(booking, billingInfo, booking.Details.ToList());
+        
+        // Confirmamos el guardado de forma independiente a la reserva
+        await _uow.CompleteAsync();
+        return true;
+    }
+
     public async Task<bool> CancelarFacturaAsync(Guid bookingId)
     {
         var invoice = await _uow.Invoices.Query()

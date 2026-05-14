@@ -9,5 +9,6 @@ public interface IBillingService
     Task<InvoiceFullResponse?> GetInvoiceByIdAsync(Guid id);
     Task<IEnumerable<InvoiceSummaryResponse>> GetUserInvoicesAsync(Guid userId);
     Task CrearFacturaAsync(DataAccess.Entities.Booking booking, DTOs.Booking.BillingInfo? billing, List<DataAccess.Entities.BookingDetail> bookingDetails);
+    Task<bool> GenerarFacturaAsync(Guid bookingId, DTOs.Booking.BillingInfo billingInfo);
     Task<bool> CancelarFacturaAsync(Guid bookingId);
 }

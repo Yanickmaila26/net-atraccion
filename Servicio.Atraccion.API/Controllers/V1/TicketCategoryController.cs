@@ -5,7 +5,7 @@ using Servicio.Atraccion.Business.Interfaces;
 namespace Servicio.Atraccion.API.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/ticketcategory")]
 public class TicketCategoryController : ControllerBase
 {
     private readonly IMasterDataService _masterData;

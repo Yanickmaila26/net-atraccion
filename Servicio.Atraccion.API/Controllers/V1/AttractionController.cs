@@ -8,7 +8,7 @@ using System.Security.Claims;
 namespace Servicio.Atraccion.API.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/attraction")]
 public class AttractionController : ControllerBase
 {
     private readonly IAttractionService _attractionService;

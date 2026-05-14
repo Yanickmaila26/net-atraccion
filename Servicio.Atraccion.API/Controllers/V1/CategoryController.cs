@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Servicio.Atraccion.API.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/category")]
 public class CategoryController : ControllerBase
 {
     private readonly ICategoryService _categoryService;

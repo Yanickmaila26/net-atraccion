@@ -119,6 +119,101 @@ public class AuthService : IAuthService
         return GenerateTokenResponse(userWithRoles!);
     }
 
+    public async Task<UserClaimsResponse> UpdateProfileAsync(Guid userId, UpdateProfileRequest request)
+    {
+        var user = await _unitOfWork.Users.Query()
+            .Include(u => u.Client)
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+            throw new UnauthorizedBusinessException("Usuario no encontrado.");
+
+        var emailExists = await _unitOfWork.Users.Query()
+            .AnyAsync(u => u.Email == request.Email && u.Id != userId);
+
+        if (emailExists)
+            throw new ConflictException("El correo electrónico ya está en uso por otra cuenta.");
+
+        user.Email = request.Email;
+        
+        if (user.Client != null)
+        {
+            var nameParts = request.Name.Split(' ', 2);
+            user.Client.FirstName = nameParts[0];
+            user.Client.LastName = nameParts.Length > 1 ? nameParts[1] : string.Empty;
+            user.Client.Phone = request.PhoneNumber;
+        }
+
+        _unitOfWork.Users.Update(user);
+        await _unitOfWork.CompleteAsync();
+
+        var roles = user.UserRoles?.Select(ur => ur.Role?.Name).Where(n => n != null).Cast<string>().ToList() ?? new List<string>();
+
+        return new UserClaimsResponse
+        {
+            UserId = user.Id,
+            Email = user.Email,
+            FirstName = user.Client?.FirstName ?? string.Empty,
+            LastName = user.Client?.LastName ?? string.Empty,
+            Roles = roles
+        };
+    }
+
+    public async Task<bool> ChangePasswordAsync(Guid userId, ChangePasswordRequest request)
+    {
+        var user = await _unitOfWork.Users.Query().FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null || !BCryptNet.Verify(request.CurrentPassword, user.PasswordHash))
+            throw new UnauthorizedBusinessException("La contraseña actual es incorrecta.");
+
+        user.PasswordHash = BCryptNet.HashPassword(request.NewPassword);
+        
+        _unitOfWork.Users.Update(user);
+        await _unitOfWork.CompleteAsync();
+
+        return true;
+    }
+
+    public async Task<string> ForgotPasswordAsync(ForgotPasswordRequest request)
+    {
+        var user = await _unitOfWork.Users.Query().FirstOrDefaultAsync(u => u.Email == request.Email);
+
+        if (user == null)
+            return string.Empty; // No filtramos que correos existen
+
+        // Generar un token aleatorio seguro (URL Safe)
+        var tokenBytes = System.Security.Cryptography.RandomNumberGenerator.GetBytes(32);
+        var token = Convert.ToBase64String(tokenBytes)
+                           .Replace("+", "-").Replace("/", "_").Replace("=", "");
+
+        user.ResetPasswordToken = token;
+        user.ResetPasswordExpiry = DateTime.UtcNow.AddHours(2); // Validez 2 horas
+
+        _unitOfWork.Users.Update(user);
+        await _unitOfWork.CompleteAsync();
+
+        return token;
+    }
+
+    public async Task<bool> ResetPasswordAsync(ResetPasswordRequest request)
+    {
+        var user = await _unitOfWork.Users.Query().FirstOrDefaultAsync(u => u.Email == request.Email);
+
+        if (user == null || user.ResetPasswordToken != request.Token || user.ResetPasswordExpiry < DateTime.UtcNow)
+            throw new BusinessException("Token inválido o expirado.");
+
+        user.PasswordHash = BCryptNet.HashPassword(request.NewPassword);
+        user.ResetPasswordToken = null; // Invalida el token tras usarlo
+        user.ResetPasswordExpiry = null;
+
+        _unitOfWork.Users.Update(user);
+        await _unitOfWork.CompleteAsync();
+
+        return true;
+    }
+
     private LoginResponse GenerateTokenResponse(DataAccess.Entities.User user)
     {
         var roles = user.UserRoles?.Select(ur => ur.Role?.Name).Where(n => n != null).Cast<string>().ToList() ?? new List<string>();

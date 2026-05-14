@@ -8,7 +8,7 @@ using Servicio.Atraccion.DataAccess.Common;
 namespace Servicio.Atraccion.API.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/review")]
 public class ReviewController : ControllerBase
 {
     private readonly IReviewService _reviewService;

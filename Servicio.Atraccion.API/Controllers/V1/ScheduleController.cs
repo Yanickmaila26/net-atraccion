@@ -6,7 +6,7 @@ using Servicio.Atraccion.Business.Services;
 namespace Servicio.Atraccion.API.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/schedule")]
 [Authorize(Roles = "Admin,Partner")]
 public class ScheduleController : ControllerBase
 {

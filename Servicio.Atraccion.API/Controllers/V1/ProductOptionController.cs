@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Servicio.Atraccion.API.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/productoption")]
 [Authorize(Roles = "Admin,Partner")]
 public class ProductOptionController : ControllerBase
 {

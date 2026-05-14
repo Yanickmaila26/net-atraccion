@@ -11,7 +11,7 @@ namespace Servicio.Atraccion.API.Controllers.V1;
 /// Permite listar y consultar el detalle de las facturas emitidas por el sistema.
 /// </summary>
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/billing")]
 [Authorize(Roles = "Admin,Partner,Client")] // Permitir a clientes ver sus facturas
 public class BillingController : ControllerBase
 {
@@ -49,6 +49,7 @@ public class BillingController : ControllerBase
     /// <summary>
     /// Obtiene el detalle completo de una factura específica.
     /// </summary>
+    /// <param name="id">El identificador único de la factura.</param>
     [HttpGet("management/{id:guid}")]
     public async Task<ActionResult<InvoiceFullResponse>> GetInvoiceDetail(Guid id)
     {
@@ -58,6 +59,23 @@ public class BillingController : ControllerBase
             return NotFound(new { message = "La factura no existe." });
 
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Crea la factura para una reserva existente. 
+    /// Útil en caso de fallos de red o si se requiere emitir la factura a posteriori.
+    /// </summary>
+    /// <param name="bookingId">El identificador único de la reserva vinculada.</param>
+    /// <param name="billingInfo">Los datos fiscales para la factura (CustomerName, TaxId, Email, Address).</param>
+    [HttpPost("invoice/{bookingId:guid}")]
+    public async Task<ActionResult> CreateInvoice(Guid bookingId, [FromBody] Servicio.Atraccion.Business.DTOs.Booking.BillingInfo billingInfo)
+    {
+        var result = await _billingService.GenerarFacturaAsync(bookingId, billingInfo);
+        
+        if (!result)
+            return NotFound(new { message = "Reserva no encontrada o no válida." });
+
+        return Ok(new { message = "Factura generada y registrada con éxito." });
     }
 
     /// <summary>

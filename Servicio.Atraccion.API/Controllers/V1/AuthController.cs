@@ -7,7 +7,7 @@ using Servicio.Atraccion.Business.Interfaces;
 namespace Servicio.Atraccion.API.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/auth")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
@@ -83,5 +83,65 @@ public class AuthController : ControllerBase
     public IActionResult TestPartnerAuth()
     {
         return Ok(new { message = "Tienes acceso como partner", userId = User.Identity?.Name });
+    }
+
+    /// <summary>
+    /// Actualiza la información del perfil del usuario autenticado.
+    /// </summary>
+    [HttpPut("profile")]
+    [Authorize]
+    public async Task<ActionResult<UserClaimsResponse>> UpdateProfile([FromBody] UpdateProfileRequest request)
+    {
+        var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid userId))
+            return Unauthorized();
+
+        var result = await _authService.UpdateProfileAsync(userId, request);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Cambia la contraseña del usuario autenticado.
+    /// </summary>
+    [HttpPut("change-password")]
+    [Authorize]
+    public async Task<ActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid userId))
+            return Unauthorized();
+
+        await _authService.ChangePasswordAsync(userId, request);
+        return Ok(new { message = "Contraseña actualizada exitosamente." });
+    }
+
+    /// <summary>
+    /// Solicita un enlace de recuperación de contraseña.
+    /// </summary>
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    public async Task<ActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        var token = await _authService.ForgotPasswordAsync(request);
+        
+        if (string.IsNullOrEmpty(token))
+            return Ok(new { message = "Si el correo está registrado, recibirás un enlace de recuperación." });
+
+        return Ok(new 
+        { 
+            message = "Si el correo está registrado, recibirás un enlace de recuperación.",
+            dev_token_temporal = token 
+        });
+    }
+
+    /// <summary>
+    /// Restablece la contraseña usando el token de recuperación.
+    /// </summary>
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        await _authService.ResetPasswordAsync(request);
+        return Ok(new { message = "Contraseña restablecida exitosamente. Ya puedes iniciar sesión." });
     }
 }

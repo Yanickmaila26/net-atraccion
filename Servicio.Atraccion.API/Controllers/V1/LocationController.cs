@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Servicio.Atraccion.API.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/location")]
 public class LocationController : ControllerBase
 {
     private readonly ILocationService _locationService;

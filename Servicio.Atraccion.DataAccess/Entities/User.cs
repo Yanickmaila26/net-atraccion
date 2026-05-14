@@ -10,6 +10,8 @@ public class User : BaseEntity
     public bool EmailVerified { get; set; } = false;
     public DateTime? LastLoginAt { get; set; }
     public string? RefreshToken { get; set; }
+    public string? ResetPasswordToken { get; set; }
+    public DateTime? ResetPasswordExpiry { get; set; }
     public DateTime? DeletedAt { get; set; }
 
     // Navegación

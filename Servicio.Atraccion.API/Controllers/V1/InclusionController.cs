@@ -6,7 +6,7 @@ using Servicio.Atraccion.Business.Interfaces;
 namespace Servicio.Atraccion.API.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/inclusion")]
 public class InclusionController : ControllerBase
 {
     private readonly IMasterDataService _masterData;

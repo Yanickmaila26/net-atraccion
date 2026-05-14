@@ -49,3 +49,46 @@ public class UserClaimsResponse
     public string LastName { get; set; } = string.Empty;
     public List<string> Roles { get; set; } = [];
 }
+
+public class UpdateProfileRequest
+{
+    [Required(ErrorMessage = "El nombre es requerido.")]
+    public string Name { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "El email es requerido.")]
+    [EmailAddress(ErrorMessage = "Formato de email inválido.")]
+    public string Email { get; set; } = string.Empty;
+
+    public string? PhoneNumber { get; set; }
+}
+
+public class ChangePasswordRequest
+{
+    [Required(ErrorMessage = "La contraseña actual es requerida.")]
+    public string CurrentPassword { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "La nueva contraseña es requerida.")]
+    [MinLength(6, ErrorMessage = "La nueva contraseña debe tener al menos 6 caracteres.")]
+    public string NewPassword { get; set; } = string.Empty;
+}
+
+public class ForgotPasswordRequest
+{
+    [Required(ErrorMessage = "El email es requerido.")]
+    [EmailAddress(ErrorMessage = "Formato de email inválido.")]
+    public string Email { get; set; } = string.Empty;
+}
+
+public class ResetPasswordRequest
+{
+    [Required(ErrorMessage = "El email es requerido.")]
+    [EmailAddress(ErrorMessage = "Formato de email inválido.")]
+    public string Email { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "El token es requerido.")]
+    public string Token { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "La nueva contraseña es requerida.")]
+    [MinLength(6, ErrorMessage = "La nueva contraseña debe tener al menos 6 caracteres.")]
+    public string NewPassword { get; set; } = string.Empty;
+}

@@ -5,7 +5,7 @@ using Servicio.Atraccion.Business.Interfaces;
 namespace Servicio.Atraccion.API.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/itinerary")]
 public class ItineraryController : ControllerBase
 {
     private readonly IAttractionService _attractionService;
