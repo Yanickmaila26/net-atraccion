@@ -281,6 +281,9 @@ public class BookingIntegrationService : IBookingIntegrationService
         if (booking.StatusId == 4) // Cancelled
             return ApiResponse<bool>.Fail("La reserva ya se encuentra cancelada.");
 
+        if (booking.StatusId == 3) // Completed
+            return ApiResponse<bool>.Fail("No se puede cancelar una reserva que ya ha sido completada.");
+
         // 1. Cambiar estado
         booking.StatusId = 4; // Cancelled
         booking.CancelledAt = DateTime.UtcNow;
